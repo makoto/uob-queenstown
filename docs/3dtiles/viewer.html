@@ -10,6 +10,11 @@
     #info { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px 15px; border-radius: 5px; font-family: sans-serif; font-size: 13px; z-index: 1; }
     #info h3 { margin: 0 0 5px 0; }
     #picked { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: #0f0; padding: 10px 15px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 1; display: none; max-width: 400px; }
+    #basemap-toggle { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 3px 10px; font-family: sans-serif; font-size: 12px; cursor: pointer; margin-top: 6px; }
+    #basemap-toggle:hover { background: rgba(255,255,255,0.3); }
+    .legend { margin-top: 8px; font-size: 11px; line-height: 1.6; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-swatch { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -17,14 +22,35 @@
   <div id="info">
     <h3>Queenstown 3D Buildings</h3>
     <div>8,671 buildings | Click a building for details</div>
+    <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light</button>
+    <div class="legend">
+      <div style="color:#999; margin-bottom:2px;">Building height</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:red"></span> &gt; 100 m</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:orange"></span> 50 &ndash; 100 m</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:yellow"></span> 30 &ndash; 50 m</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:cyan"></span> 15 &ndash; 30 m</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:white"></span> &le; 15 m</div>
+    </div>
   </div>
   <div id="picked"></div>
   <script>
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5NDFhNDRiNS1kN2QzLTRkODEtYWE3Ny1iNjNiYmJhYzIxNWYiLCJpZCI6Mzg5OTAzLCJpYXQiOjE3NzA4ODU4MTN9.dB69NlIicj_aXa_DecgmHGUKhkD055fGqZCz2t1Yan0';
 
+    const cartoCredit = new Cesium.Credit('&copy; <a href="https://carto.com/">CARTO</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>');
+    const cartoDark = new Cesium.UrlTemplateImageryProvider({
+      url: 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+      credit: cartoCredit, minimumLevel: 0, maximumLevel: 19,
+    });
+    const cartoLight = new Cesium.UrlTemplateImageryProvider({
+      url: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+      credit: cartoCredit, minimumLevel: 0, maximumLevel: 19,
+    });
+
+    let isDark = true;
     const viewer = new Cesium.Viewer('cesiumContainer', {
       terrain: Cesium.Terrain.fromWorldTerrain(),
-      baseLayerPicker: true,
+      baseLayer: new Cesium.ImageryLayer(cartoDark),
+      baseLayerPicker: false,
       geocoder: false,
       homeButton: false,
       animation: false,
@@ -143,6 +169,52 @@
       })
       .catch(err => console.error('Boundary error:', err));
 
+    // Load subzone boundaries
+    fetch('../geo/queenstown-subzones.geojson')
+      .then(r => r.json())
+      .then(geojson => {
+        geojson.features.forEach(feature => {
+          const name = feature.properties.SUBZONE_N;
+          const coords = feature.geometry.coordinates;
+          const rings = feature.geometry.type === 'MultiPolygon'
+            ? coords.flat() : coords;
+          rings.forEach(ring => {
+            const positions = ring.map(p => Cesium.Cartesian3.fromDegrees(p[0], p[1]));
+            viewer.entities.add({
+              polyline: {
+                positions: positions,
+                clampToGround: true,
+                width: 2,
+                material: Cesium.Color.CYAN.withAlpha(0.6),
+              }
+            });
+          });
+          // Label at centroid
+          const allLng = coords.flat(2).filter((_, i) => i % 2 === 0 || (Array.isArray(coords[0][0][0]) ? false : true));
+          // Simple centroid from first ring
+          const ring0 = rings[0];
+          const cLng = ring0.reduce((s, p) => s + p[0], 0) / ring0.length;
+          const cLat = ring0.reduce((s, p) => s + p[1], 0) / ring0.length;
+          viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(cLng, cLat),
+            label: {
+              text: name,
+              font: '11px sans-serif',
+              fillColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 2,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              scaleByDistance: new Cesium.NearFarScalar(500, 1.0, 5000, 0.4),
+            }
+          });
+        });
+        console.log('Subzones drawn:', geojson.features.length);
+      })
+      .catch(err => console.error('Subzones error:', err));
+
     // Click handler to show building info
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
     handler.setInputAction(function(movement) {
@@ -172,6 +244,16 @@
         pickedDiv.style.display = 'none';
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+    // Basemap toggle
+    function toggleBasemap() {
+      const layers = viewer.imageryLayers;
+      layers.remove(layers.get(0));
+      isDark = !isDark;
+      layers.addImageryProvider(isDark ? cartoDark : cartoLight, 0);
+      const btn = document.getElementById('basemap-toggle');
+      btn.innerHTML = isDark ? '&#9788; Light' : '&#9790; Dark';
+    }
   </script>
 </body>
 </html>
