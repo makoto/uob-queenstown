@@ -15,7 +15,7 @@ This catalogue documents all geospatial datasets prepared for the Queenstown stu
 | `queenstown-buildings-hdb-enriched.geojson` | 308 | 418 KB | HDB blocks with enriched data |
 | `queenstown-ura-height-control.geojson` | 7 | 11 KB | URA planning height zones |
 
-All files are in `generated/geo/`. Raw source data is in `data/` (gitignored).
+All files are in `docs/geo/`. Raw source data is in `data/` (gitignored).
 
 ---
 

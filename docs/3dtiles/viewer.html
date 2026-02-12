@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Queenstown 3D Buildings</title>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <style>
+    html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    #info { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px 15px; border-radius: 5px; font-family: sans-serif; font-size: 13px; z-index: 1; }
+    #info h3 { margin: 0 0 5px 0; }
+    #picked { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: #0f0; padding: 10px 15px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 1; display: none; max-width: 400px; }
+  </style>
+</head>
+<body>
+  <div id="cesiumContainer"></div>
+  <div id="info">
+    <h3>Queenstown 3D Buildings</h3>
+    <div>8,671 buildings | Click a building for details</div>
+  </div>
+  <div id="picked"></div>
+  <script>
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5NDFhNDRiNS1kN2QzLTRkODEtYWE3Ny1iNjNiYmJhYzIxNWYiLCJpZCI6Mzg5OTAzLCJpYXQiOjE3NzA4ODU4MTN9.dB69NlIicj_aXa_DecgmHGUKhkD055fGqZCz2t1Yan0';
+
+    const viewer = new Cesium.Viewer('cesiumContainer', {
+      terrain: Cesium.Terrain.fromWorldTerrain(),
+      baseLayerPicker: true,
+      geocoder: false,
+      homeButton: false,
+      animation: false,
+      timeline: false,
+    });
+
+    // State
+    let tilesetRef = null;
+    let tilesetCartographic = null;
+    // Apply height offset along surface normal
+    function setHeightOffset(offset) {
+      if (!tilesetRef || !tilesetCartographic) return;
+      const surface = Cesium.Cartesian3.fromRadians(
+        tilesetCartographic.longitude, tilesetCartographic.latitude, 0
+      );
+      const offsetPos = Cesium.Cartesian3.fromRadians(
+        tilesetCartographic.longitude, tilesetCartographic.latitude, offset
+      );
+      const translation = Cesium.Cartesian3.subtract(
+        offsetPos, surface, new Cesium.Cartesian3()
+      );
+      tilesetRef.modelMatrix = Cesium.Matrix4.fromTranslation(translation);
+    }
+
+    async function loadTileset() {
+      try {
+        const tileset = await Cesium.Cesium3DTileset.fromUrl('tileset.json');
+        viewer.scene.primitives.add(tileset);
+        tilesetRef = tileset;
+
+        // Get tileset center for height offset calculations
+        tilesetCartographic = Cesium.Cartographic.fromCartesian(
+          tileset.boundingSphere.center
+        );
+        console.log('Tileset center (degrees):',
+          Cesium.Math.toDegrees(tilesetCartographic.longitude).toFixed(4),
+          Cesium.Math.toDegrees(tilesetCartographic.latitude).toFixed(4),
+          'ellipsoid height:', tilesetCartographic.height.toFixed(1)
+        );
+
+        // Sample terrain height and auto-clamp buildings to ground
+        let autoOffset = 0;
+        try {
+          const terrainProvider = await Cesium.CesiumTerrainProvider.fromIonAssetId(1);
+          const positions = [Cesium.Cartographic.clone(tilesetCartographic)];
+          const samples = await Cesium.sampleTerrainMostDetailed(terrainProvider, positions);
+          const terrainHeight = samples[0].height || 0;
+          console.log('Terrain height at center:', terrainHeight);
+          console.log('Tileset ellipsoid height:', tilesetCartographic.height.toFixed(1));
+          // Building bases are at ellipsoid height 0; terrain is at terrainHeight above ellipsoid
+          // Offset = +terrainHeight to lift buildings up to terrain level
+          autoOffset = terrainHeight;
+          autoOffset = Math.round(autoOffset);
+          document.getElementById('info').innerHTML +=
+            '<br><small>Terrain: ' + terrainHeight.toFixed(1) + 'm | Auto-offset: ' + autoOffset + 'm</small>';
+        } catch(e) {
+          console.warn('Could not sample terrain:', e);
+        }
+
+        // Apply auto-offset to clamp buildings to terrain
+        setHeightOffset(autoOffset);
+
+        // Fly to Queenstown
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(103.7885, 1.2870, 2000),
+          orientation: {
+            heading: Cesium.Math.toRadians(0),
+            pitch: Cesium.Math.toRadians(-45),
+            roll: 0,
+          }
+        });
+
+        // Style by height
+        tileset.style = new Cesium.Cesium3DTileStyle({
+          color: {
+            conditions: [
+              ['${height_m} > 100', 'color("red", 0.8)'],
+              ['${height_m} > 50', 'color("orange", 0.8)'],
+              ['${height_m} > 30', 'color("yellow", 0.8)'],
+              ['${height_m} > 15', 'color("cyan", 0.8)'],
+              ['true', 'color("white", 0.7)']
+            ]
+          }
+        });
+      } catch (error) {
+        console.error('Error loading tileset:', error);
+        document.getElementById('info').innerHTML +=
+          '<br><span style="color:red">Error: ' + error.message + '</span>';
+      }
+    }
+    loadTileset();
+
+    // Load Queenstown boundary and draw as ground-clamped polyline
+    fetch('queenstown-boundary.geojson')
+      .then(r => r.json())
+      .then(geojson => {
+        const coords = geojson.features[0].geometry.coordinates;
+        // Handle Polygon or MultiPolygon
+        const rings = geojson.features[0].geometry.type === 'MultiPolygon'
+          ? coords.flat() : coords;
+        rings.forEach(ring => {
+          const positions = ring.map(p => Cesium.Cartesian3.fromDegrees(p[0], p[1]));
+          viewer.entities.add({
+            polyline: {
+              positions: positions,
+              clampToGround: true,
+              width: 4,
+              material: new Cesium.PolylineGlowMaterialProperty({
+                glowPower: 0.2,
+                color: Cesium.Color.MAGENTA,
+              }),
+            }
+          });
+        });
+        console.log('Boundary drawn:', rings.length, 'rings');
+      })
+      .catch(err => console.error('Boundary error:', err));
+
+    // Click handler to show building info
+    const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    handler.setInputAction(function(movement) {
+      const picked = viewer.scene.pick(movement.position);
+      const pickedDiv = document.getElementById('picked');
+      if (picked && picked.getProperty) {
+        const name = picked.getProperty('name') || '(unnamed)';
+        const building = picked.getProperty('building') || '';
+        const height = picked.getProperty('height_m') || '';
+        const source = picked.getProperty('height_source') || '';
+        const dsource = picked.getProperty('data_source') || '';
+        const levels = picked.getProperty('building_levels') || '';
+        const year = picked.getProperty('hdb_year_completed') || '';
+
+        let html = `<b>${name}</b><br>`;
+        html += `Type: ${building}<br>`;
+        html += `Height: ${height}m`;
+        if (levels) html += ` (${levels} storeys)`;
+        html += `<br>`;
+        html += `Height source: ${source}<br>`;
+        html += `Data source: ${dsource}<br>`;
+        if (year) html += `Year completed: ${year}<br>`;
+
+        pickedDiv.innerHTML = html;
+        pickedDiv.style.display = 'block';
+      } else {
+        pickedDiv.style.display = 'none';
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  </script>
+</body>
+</html>

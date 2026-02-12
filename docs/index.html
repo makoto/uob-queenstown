@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Queenstown Liveability Study</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
+    h1 { border-bottom: 2px solid #2c5f8a; padding-bottom: 8px; }
+    a { color: #2c5f8a; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px 20px; margin: 16px 0; }
+    .card h3 { margin: 0 0 8px 0; }
+    .card p { margin: 0; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>Queenstown Liveability Study</h1>
+  <p>Geospatial analysis of perceived liveability in Singapore's Queenstown district.</p>
+
+  <div class="card">
+    <h3><a href="3dtiles/viewer.html">3D Buildings Viewer</a></h3>
+    <p>8,671 extruded buildings with height-based colour coding and Queenstown boundary overlay. Built with CesiumJS and 3D Tiles.</p>
+  </div>
+
+  <h2>Data Files</h2>
+  <ul>
+    <li><a href="geo/queenstown-boundary.geojson">Queenstown Boundary</a> (1 polygon)</li>
+    <li><a href="geo/queenstown-subzones.geojson">Queenstown Subzones</a> (15 polygons)</li>
+    <li><a href="geo/queenstown-buildings.geojson">All Buildings</a> (8,671 features, 7.2 MB)</li>
+    <li><a href="geo/queenstown-buildings-hdb-enriched.geojson">HDB Buildings</a> (308 features)</li>
+    <li><a href="geo/queenstown-buildings-osm-only.geojson">OSM-Only Buildings</a> (8,363 features)</li>
+    <li><a href="geo/queenstown-ura-height-control.geojson">URA Height Control Zones</a> (7 features)</li>
+  </ul>
+</body>
+</html>
