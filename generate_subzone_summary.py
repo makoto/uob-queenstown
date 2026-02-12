@@ -1,0 +1,489 @@
+#!/usr/bin/env python3
+"""
+Generate per-subzone summary for Queenstown.
+
+Spatially joins multiple datasets (points, lines, CSV) to the 15 Queenstown
+subzone polygons and produces:
+  - docs/geo/queenstown-subzone-summary.geojson
+  - docs/geo/queenstown-subzone-summary.csv
+"""
+
+import csv
+import json
+import math
+import os
+import statistics
+
+from shapely.geometry import shape, Point, LineString, MultiLineString
+from shapely.ops import unary_union
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+BASE = os.path.dirname(os.path.abspath(__file__))
+GEO = os.path.join(BASE, "docs", "geo")
+DATA = os.path.join(BASE, "data", "data-gov-sg")
+
+SUBZONES_PATH = os.path.join(GEO, "queenstown-subzones.geojson")
+BUILDINGS_PATH = os.path.join(GEO, "queenstown-buildings.geojson")
+
+POINT_LAYERS = {
+    "hawker_centres": os.path.join(DATA, "hawker-centres.geojson"),
+    "parks": os.path.join(DATA, "parks.geojson"),
+    "mrt_exits": os.path.join(DATA, "mrt-station-exits.geojson"),
+    "supermarkets": os.path.join(DATA, "supermarkets.geojson"),
+    "gyms": os.path.join(DATA, "gyms.geojson"),
+    "community_clubs": os.path.join(DATA, "community-clubs.geojson"),
+}
+
+LINE_LAYERS = {
+    "cycling_path": os.path.join(DATA, "cycling-path-network.geojson"),
+    "park_connector": os.path.join(DATA, "park-connector-loop.geojson"),
+}
+
+POPULATION_CSV = os.path.join(DATA, "population-census-2020.csv")
+RESALE_CSV = os.path.join(DATA, "resale-flat-prices.csv")
+
+OUT_GEOJSON = os.path.join(GEO, "queenstown-subzone-summary.geojson")
+OUT_CSV = os.path.join(GEO, "queenstown-subzone-summary.csv")
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+# Approximate metres-per-degree at Singapore latitude (~1.3 N)
+M_PER_DEG_LAT = 111_320
+M_PER_DEG_LNG = 111_320 * math.cos(math.radians(1.3))
+
+
+def load_geojson(path):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def polygon_area_km2(geom):
+    """Rough area in km² using the Shoelace formula in projected coords."""
+    if geom.geom_type == "MultiPolygon":
+        return sum(polygon_area_km2(p) for p in geom.geoms)
+    coords = list(geom.exterior.coords)
+    # Convert degrees to metres
+    ref_lat = sum(c[1] for c in coords) / len(coords)
+    m_lng = 111_320 * math.cos(math.radians(ref_lat))
+    m_lat = 111_320
+    projected = [(c[0] * m_lng, c[1] * m_lat) for c in coords]
+    # Shoelace
+    n = len(projected)
+    area = 0
+    for i in range(n):
+        j = (i + 1) % n
+        area += projected[i][0] * projected[j][1]
+        area -= projected[j][0] * projected[i][1]
+    return abs(area) / 2.0 / 1e6  # m² → km²
+
+
+def line_length_m(line_geom):
+    """Approximate length in metres for a LineString in WGS84."""
+    coords = list(line_geom.coords)
+    total = 0.0
+    for i in range(len(coords) - 1):
+        dx = (coords[i + 1][0] - coords[i][0]) * M_PER_DEG_LNG
+        dy = (coords[i + 1][1] - coords[i][1]) * M_PER_DEG_LAT
+        total += math.sqrt(dx * dx + dy * dy)
+    return total
+
+
+# ---------------------------------------------------------------------------
+# 1. Load subzones
+# ---------------------------------------------------------------------------
+print("Loading subzones...")
+subzones_gj = load_geojson(SUBZONES_PATH)
+subzones = []
+for feat in subzones_gj["features"]:
+    geom = shape(feat["geometry"])
+    props = feat["properties"]
+    subzones.append({
+        "name": props["SUBZONE_N"],
+        "code": props["SUBZONE_C"],
+        "geom": geom,
+        "area_km2": polygon_area_km2(geom),
+        "original_feature": feat,
+    })
+print(f"  {len(subzones)} subzones loaded")
+
+# ---------------------------------------------------------------------------
+# 2. Point-in-polygon counts
+# ---------------------------------------------------------------------------
+print("Counting points per subzone...")
+# Initialise counts
+for sz in subzones:
+    for layer_name in POINT_LAYERS:
+        sz[layer_name] = 0
+    sz["mrt_stations"] = set()  # unique station names
+
+for layer_name, path in POINT_LAYERS.items():
+    if not os.path.exists(path):
+        print(f"  WARNING: {path} not found, skipping")
+        continue
+    gj = load_geojson(path)
+    count = 0
+    for feat in gj["features"]:
+        geom = feat["geometry"]
+        if geom is None or geom["type"] != "Point":
+            continue
+        pt = Point(geom["coordinates"][:2])
+        for sz in subzones:
+            if sz["geom"].contains(pt):
+                sz[layer_name] += 1
+                if layer_name == "mrt_exits":
+                    station = feat["properties"].get("STATION_NA", "")
+                    if station:
+                        sz["mrt_stations"].add(station)
+                count += 1
+                break
+    print(f"  {layer_name}: {count} points in Queenstown")
+
+# Convert station sets to counts
+for sz in subzones:
+    sz["mrt_station_count"] = len(sz["mrt_stations"])
+    del sz["mrt_stations"]
+
+# ---------------------------------------------------------------------------
+# 3. Line-in-polygon length (clip + sum)
+# ---------------------------------------------------------------------------
+print("Computing line lengths per subzone...")
+for sz in subzones:
+    sz["cycling_path_km"] = 0.0
+    sz["park_connector_km"] = 0.0
+
+for layer_name, path in LINE_LAYERS.items():
+    if not os.path.exists(path):
+        print(f"  WARNING: {path} not found, skipping")
+        continue
+    gj = load_geojson(path)
+    key = f"{layer_name}_km"
+    total = 0.0
+    for feat in gj["features"]:
+        geom_raw = feat["geometry"]
+        if geom_raw is None:
+            continue
+        line = shape(geom_raw)
+        if not (line.geom_type == "LineString" or line.geom_type == "MultiLineString"):
+            continue
+        for sz in subzones:
+            try:
+                clipped = sz["geom"].intersection(line)
+            except Exception:
+                continue
+            if clipped.is_empty:
+                continue
+            length_m = 0
+            if clipped.geom_type == "LineString":
+                length_m = line_length_m(clipped)
+            elif clipped.geom_type == "MultiLineString":
+                for part in clipped.geoms:
+                    length_m += line_length_m(part)
+            elif clipped.geom_type == "GeometryCollection":
+                for part in clipped.geoms:
+                    if part.geom_type == "LineString":
+                        length_m += line_length_m(part)
+                    elif part.geom_type == "MultiLineString":
+                        for sub in part.geoms:
+                            length_m += line_length_m(sub)
+            sz[key] += length_m / 1000.0
+            total += length_m / 1000.0
+    print(f"  {layer_name}: {total:.2f} km total in Queenstown")
+
+# ---------------------------------------------------------------------------
+# 4. Population (Census 2020)
+# ---------------------------------------------------------------------------
+print("Joining population data...")
+
+# Build name mapping: census row name → subzone name
+# Census uses title case e.g. "Commonwealth", subzone uses upper "COMMONWEALTH"
+census_rows = {}
+with open(POPULATION_CSV, encoding="utf-8") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        census_rows[row["Number"].strip()] = row
+
+# Map subzone names to census names
+CENSUS_NAME_MAP = {
+    "COMMONWEALTH": "Commonwealth",
+    "DOVER": "Dover",
+    "GHIM MOH": "Ghim Moh",
+    "HOLLAND DRIVE": "Holland Drive",
+    "KENT RIDGE": None,  # not in census separately
+    "MARGARET DRIVE": "Margaret Drive",
+    "MEI CHIN": "Mei Chin",
+    "NATIONAL UNIVERSITY OF S'PORE": "National University Of S'pore",
+    "ONE NORTH": "One North",
+    "PASIR PANJANG 1": "Pasir Panjang 1",
+    "PASIR PANJANG 2": "Pasir Panjang 2",
+    "PORT": "Port",
+    "QUEENSWAY": "Queensway",
+    "SINGAPORE POLYTECHNIC": "Singapore Polytechnic",
+    "TANGLIN HALT": "Tanglin Halt",
+}
+
+for sz in subzones:
+    sz["population_total"] = 0
+    sz["population_male"] = 0
+    sz["population_female"] = 0
+    sz["population_elderly_65plus"] = 0
+
+    census_name = CENSUS_NAME_MAP.get(sz["name"])
+    if census_name and census_name in census_rows:
+        row = census_rows[census_name]
+
+        def safe_int(val):
+            val = val.strip().replace(",", "")
+            if val in ("-", "", "na"):
+                return 0
+            return int(val)
+
+        sz["population_total"] = safe_int(row["Total_Total"])
+        sz["population_male"] = safe_int(row["Males_Total"])
+        sz["population_female"] = safe_int(row["Females_Total"])
+
+        # Sum 65+ age brackets
+        elderly = 0
+        for col_prefix in ["Total"]:
+            for age_col in ["65_69", "70_74", "75_79", "80_84", "85_89", "90andOver"]:
+                key = f"{col_prefix}_{age_col}"
+                if key in row:
+                    elderly += safe_int(row[key])
+        sz["population_elderly_65plus"] = elderly
+        print(f"  {sz['name']}: pop={sz['population_total']}, elderly={sz['population_elderly_65plus']}")
+    else:
+        if census_name is not None:
+            print(f"  WARNING: census data not found for {sz['name']} (tried: {census_name})")
+
+# ---------------------------------------------------------------------------
+# 5. Resale flat prices — join via buildings geometry
+# ---------------------------------------------------------------------------
+print("Joining resale flat prices...")
+
+# Street name abbreviation map (resale CSV → building GeoJSON)
+STREET_ABBREVS = {
+    "AVE": "AVENUE", "CL": "CLOSE", "CRES": "CRESCENT", "CT": "COURT",
+    "DR": "DRIVE", "HTS": "HEIGHTS", "LN": "LANE", "PL": "PLACE",
+    "RD": "ROAD", "ST": "STREET", "TER": "TERRACE",
+    "C'WEALTH": "COMMONWEALTH", "QUEEN'S": "QUEEN'S",
+}
+
+
+def normalise_street(name):
+    """Expand common HDB resale CSV abbreviations to match OSM names."""
+    parts = name.strip().upper().split()
+    expanded = []
+    for p in parts:
+        expanded.append(STREET_ABBREVS.get(p, p))
+    return " ".join(expanded)
+
+
+# Load resale transactions for Queenstown, 2023-2025
+resale_by_block_street = {}
+with open(RESALE_CSV, encoding="utf-8") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        if row["town"] != "QUEENSTOWN":
+            continue
+        month = row["month"]
+        year = int(month.split("-")[0])
+        if year < 2023:
+            continue
+        key = (row["block"].strip(), normalise_street(row["street_name"]))
+        price = float(row["resale_price"])
+        resale_by_block_street.setdefault(key, []).append(price)
+
+print(f"  {sum(len(v) for v in resale_by_block_street.values())} Queenstown resale transactions (2023-2025)")
+
+# Load buildings to map block+street → subzone
+print("  Mapping resale prices to subzones via building geometry...")
+buildings_gj = load_geojson(BUILDINGS_PATH)
+
+# Build block+street → subzone index from buildings
+block_to_subzone = {}
+for feat in buildings_gj["features"]:
+    props = feat["properties"]
+    block = (props.get("addr_housenumber") or "").strip()
+    street = (props.get("addr_street") or "").strip().upper()
+    if not block or not street:
+        continue
+    key = (block, street)
+    if key in block_to_subzone:
+        continue
+    pt = shape(feat["geometry"]).centroid
+    for sz in subzones:
+        if sz["geom"].contains(pt):
+            block_to_subzone[key] = sz["name"]
+            break
+
+# Aggregate prices per subzone
+resale_prices_by_subzone = {}
+matched_txns = 0
+for (block, street), prices in resale_by_block_street.items():
+    sz_name = block_to_subzone.get((block, street))
+    if sz_name:
+        resale_prices_by_subzone.setdefault(sz_name, []).extend(prices)
+        matched_txns += len(prices)
+
+print(f"  {matched_txns} transactions matched to subzones")
+
+# Compute district-wide median as fallback
+all_qt_prices = []
+for prices in resale_by_block_street.values():
+    all_qt_prices.extend(prices)
+district_median = statistics.median(all_qt_prices) if all_qt_prices else 0
+
+for sz in subzones:
+    prices = resale_prices_by_subzone.get(sz["name"], [])
+    if prices:
+        sz["resale_median_price"] = round(statistics.median(prices))
+        sz["resale_transaction_count"] = len(prices)
+    else:
+        sz["resale_median_price"] = None
+        sz["resale_transaction_count"] = 0
+
+print(f"  District-wide median: ${district_median:,.0f}")
+
+# ---------------------------------------------------------------------------
+# 6. Building stats
+# ---------------------------------------------------------------------------
+print("Computing building stats per subzone...")
+
+for sz in subzones:
+    sz["building_count"] = 0
+    sz["hdb_count"] = 0
+    sz["building_heights"] = []
+
+for feat in buildings_gj["features"]:
+    props = feat["properties"]
+    centroid = shape(feat["geometry"]).centroid
+    for sz in subzones:
+        if sz["geom"].contains(centroid):
+            sz["building_count"] += 1
+            if props.get("hdb_match"):
+                sz["hdb_count"] += 1
+            h = props.get("height_m")
+            if h is not None and h > 0:
+                sz["building_heights"].append(h)
+            break
+
+for sz in subzones:
+    heights = sz["building_heights"]
+    sz["mean_height_m"] = round(statistics.mean(heights), 1) if heights else None
+    sz["max_height_m"] = round(max(heights), 1) if heights else None
+    del sz["building_heights"]
+
+# ---------------------------------------------------------------------------
+# 7. Derived density metrics
+# ---------------------------------------------------------------------------
+print("Computing density metrics...")
+for sz in subzones:
+    area = sz["area_km2"]
+    sz["population_density"] = round(sz["population_total"] / area) if area > 0 else 0
+
+    amenity_total = (
+        sz["hawker_centres"]
+        + sz["parks"]
+        + sz["supermarkets"]
+        + sz["gyms"]
+        + sz["community_clubs"]
+    )
+    sz["amenity_count"] = amenity_total
+    sz["amenity_density"] = round(amenity_total / area, 1) if area > 0 else 0
+
+# ---------------------------------------------------------------------------
+# 8. Assemble output
+# ---------------------------------------------------------------------------
+print("Writing output files...")
+
+# Define output field order
+FIELDS = [
+    "subzone_name", "subzone_code", "area_km2",
+    "population_total", "population_male", "population_female",
+    "population_elderly_65plus", "population_density",
+    "hawker_centres", "parks", "supermarkets", "gyms", "community_clubs",
+    "amenity_count", "amenity_density",
+    "mrt_exits", "mrt_station_count",
+    "cycling_path_km", "park_connector_km",
+    "building_count", "hdb_count", "mean_height_m", "max_height_m",
+    "resale_median_price", "resale_transaction_count",
+]
+
+features_out = []
+csv_rows = []
+
+for sz in subzones:
+    props = {
+        "subzone_name": sz["name"],
+        "subzone_code": sz["code"],
+        "area_km2": round(sz["area_km2"], 3),
+        "population_total": sz["population_total"],
+        "population_male": sz["population_male"],
+        "population_female": sz["population_female"],
+        "population_elderly_65plus": sz["population_elderly_65plus"],
+        "population_density": sz["population_density"],
+        "hawker_centres": sz["hawker_centres"],
+        "parks": sz["parks"],
+        "supermarkets": sz["supermarkets"],
+        "gyms": sz["gyms"],
+        "community_clubs": sz["community_clubs"],
+        "amenity_count": sz["amenity_count"],
+        "amenity_density": sz["amenity_density"],
+        "mrt_exits": sz["mrt_exits"],
+        "mrt_station_count": sz["mrt_station_count"],
+        "cycling_path_km": round(sz["cycling_path_km"], 2),
+        "park_connector_km": round(sz["park_connector_km"], 2),
+        "building_count": sz["building_count"],
+        "hdb_count": sz["hdb_count"],
+        "mean_height_m": sz["mean_height_m"],
+        "max_height_m": sz["max_height_m"],
+        "resale_median_price": sz["resale_median_price"],
+        "resale_transaction_count": sz["resale_transaction_count"],
+    }
+
+    # GeoJSON feature: reuse original geometry
+    features_out.append({
+        "type": "Feature",
+        "properties": props,
+        "geometry": sz["original_feature"]["geometry"],
+    })
+
+    csv_rows.append(props)
+
+# Sort by subzone code
+features_out.sort(key=lambda f: f["properties"]["subzone_code"])
+csv_rows.sort(key=lambda r: r["subzone_code"])
+
+# Write GeoJSON
+geojson_out = {
+    "type": "FeatureCollection",
+    "features": features_out,
+}
+with open(OUT_GEOJSON, "w", encoding="utf-8") as f:
+    json.dump(geojson_out, f, indent=2, ensure_ascii=False)
+print(f"  -> {OUT_GEOJSON}")
+
+# Write CSV
+with open(OUT_CSV, "w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=FIELDS)
+    writer.writeheader()
+    writer.writerows(csv_rows)
+print(f"  -> {OUT_CSV}")
+
+# ---------------------------------------------------------------------------
+# Summary
+# ---------------------------------------------------------------------------
+print("\n=== Summary ===")
+total_pop = sum(sz["population_total"] for sz in subzones)
+total_buildings = sum(sz["building_count"] for sz in subzones)
+total_hdb = sum(sz["hdb_count"] for sz in subzones)
+total_amenities = sum(sz["amenity_count"] for sz in subzones)
+print(f"  Subzones: {len(subzones)}")
+print(f"  Total population: {total_pop:,}")
+print(f"  Total buildings: {total_buildings:,}")
+print(f"  Total HDB blocks: {total_hdb}")
+print(f"  Total amenity points: {total_amenities}")
+print("Done!")

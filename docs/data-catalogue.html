@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Data Catalogue - Queenstown Liveability Study</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
+    h1 { border-bottom: 2px solid #2c5f8a; padding-bottom: 8px; }
+    h2 { color: #2c5f8a; margin-top: 32px; }
+    h3 { color: #444; margin-top: 24px; }
+    a { color: #2c5f8a; }
+    .back { font-size: 14px; margin-bottom: 16px; }
+    table { font-size: 13px; border-collapse: collapse; width: 100%; margin: 12px 0 20px 0; }
+    th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #eee; }
+    th { color: #666; font-weight: 600; background: #f8f9fa; border-bottom: 2px solid #ddd; position: sticky; top: 0; }
+    td { color: #555; }
+    tr:hover td { background: #f5f8fb; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 4px; font-weight: 500; }
+    .badge-open { background: #e6f4ea; color: #1a7f37; }
+    .badge-api { background: #fff3cd; color: #856404; }
+    .badge-nda { background: #f8d7da; color: #842029; }
+    .badge-web { background: #e8eaf6; color: #3949ab; }
+    .section-note { font-size: 13px; color: #666; margin: 4px 0 12px 0; font-style: italic; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+    .join-table th { white-space: nowrap; }
+    .gap-item { margin: 4px 0; padding-left: 8px; border-left: 3px solid #ddd; }
+  </style>
+</head>
+<body>
+  <div class="back"><a href="index.html">&larr; Back to Home</a></div>
+  <h1>Data Catalogue</h1>
+  <p>All available datasets from 6 data sources relevant to investigating perceived liveability in Singapore's Queenstown district.</p>
+
+  <hr>
+
+  <h2>Summary Table: All Datasets by Source</h2>
+
+  <h3>Spatial Boundary &amp; Base Layers</h3>
+  <table>
+    <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
+    <tr><td>Planning Area Boundary</td><td>URA / data.gov.sg</td><td>GeoJSON</td><td>Filter by PLN_AREA_N</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Subzone Boundary (15 subzones)</td><td>URA / data.gov.sg</td><td>GeoJSON</td><td>Filter by PLN_AREA_N</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Land Use Layer (MP2019)</td><td>URA / data.gov.sg</td><td>GeoJSON (166 MB)</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Building Height Control</td><td>URA / data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Street Block Layer</td><td>URA / data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Conservation Area Layer</td><td>URA / data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Draft Master Plan 2025</td><td>URA</td><td>PDF / Web</td><td>Queenstown sections</td><td><span class="badge badge-web">View</span></td></tr>
+  </table>
+
+  <h3>Social Intensity</h3>
+  <table>
+    <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_4a086da0a5553be1d89383cd90d07ecd/view">Hawker Centres</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_cac2c32f01960a3ad7202a99c27268a0/view">Supermarkets</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_17f5382f26140b1fdae0ba2ef6239d2f/view">HDB Property Information</a></td><td>data.gov.sg</td><td>CSV</td><td>Filter by town</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/collections/189/view">Resale Flat Prices</a></td><td>data.gov.sg</td><td>CSV + API</td><td>Filter by town</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>OneMap Themes (110+ POI layers)</td><td>OneMap</td><td>JSON API</td><td>Bounding box filter</td><td><span class="badge badge-api">API token</span></td></tr>
+    <tr><td>Passenger Volume (Bus/Train)</td><td>LTA DataMall</td><td>JSON API</td><td>By stop/station</td><td><span class="badge badge-api">API key</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_d95ae740c0f8961a0b10435836660ce0/view">Population Census 2020</a></td><td>data.gov.sg</td><td>CSV</td><td>By planning area</td><td><span class="badge badge-open">Open</span></td></tr>
+  </table>
+
+  <h3>Accessibility</h3>
+  <table>
+    <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
+    <tr><td>Bus Stops</td><td>LTA DataMall</td><td>Shapefile + API</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span> / <span class="badge badge-api">API</span></td></tr>
+    <tr><td>Bus Routes &amp; Services</td><td>LTA DataMall</td><td>JSON API</td><td>Filter by stops</td><td><span class="badge badge-api">API key</span></td></tr>
+    <tr><td>Train Stations</td><td>LTA DataMall</td><td>Shapefile</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_b39d3a0871985372d7e1637193335da5/view">MRT Station Exits</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>OneMap Routing (drive/walk/cycle/PT)</td><td>OneMap</td><td>JSON API</td><td>Any coordinates</td><td><span class="badge badge-api">API token</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_a69ef89cc954bb7920245a7b8ad95dde8/view">Park Connector Loop</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_b5f239cc954bb7920245a7b8ad95dde8/view">ABC Waters</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+  </table>
+
+  <h3>Active Mobility</h3>
+  <table>
+    <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_8f468b25193f64be8a16fa7d8f60f553/view">Cycling Path Network</a></td><td>LTA / data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_4d1c99c6bb6f002ee566b8f55ffb0d58/view">SDCP Planned Cycling Paths</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Bicycle Parking</td><td>LTA DataMall</td><td>JSON API</td><td>Radius query</td><td><span class="badge badge-api">API key</span></td></tr>
+    <tr><td>Footpath</td><td>LTA DataMall</td><td>Shapefile (7.1 MB)</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Covered Linkway</td><td>LTA DataMall</td><td>Shapefile</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_306cc1018cb733346681883ee6d73054/view">NParks Tracks</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Mapillary Street-Level Imagery</td><td>Mapillary</td><td>JPEG + JSON</td><td>Variable density</td><td><span class="badge badge-api">API token</span></td></tr>
+  </table>
+
+  <h3>Microclimate</h3>
+  <table>
+    <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
+    <tr><td><a href="https://data.gov.sg/collections/1459/view">Realtime Weather Readings</a></td><td>data.gov.sg</td><td>JSON API</td><td>Nearest station</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_1744ca68dc7ed37221b17c441042405e/view">Monthly Climate Data</a></td><td>data.gov.sg</td><td>CSV</td><td>Single station</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_03bb2eb67ad645d0188342fa74ad7066/view">Historical Daily Weather</a></td><td>data.gov.sg</td><td>CSV</td><td>Station-level</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_8f5fa022cbda68494fa70e788600505b/view">Air Pollution Levels</a></td><td>data.gov.sg</td><td>CSV</td><td>Island-wide</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td>Mapillary Image Segmentation (GVI)</td><td>Mapillary</td><td>JSON per-image</td><td>Where images exist</td><td><span class="badge badge-api">API token</span></td></tr>
+  </table>
+
+  <h3>Public Facilities</h3>
+  <table>
+    <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
+    <tr><td><a href="https://data.gov.sg/dataset/parks">Parks</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_14d807e20158338fd578c2913953516e/view">Park Facilities</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/dataset/community-clubs">Community Clubs</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_9b87bab59d036a60fad2a91530e10773/view">Sport Facilities</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_b3ae090692ecf632116c9885cfbd3424/view">Gyms@SG</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_688b934f82c1059ed0a6993d2a829089/view">Schools</a></td><td>data.gov.sg</td><td>CSV</td><td>Needs geocoding</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_61eefab99958fd70e6aab17320a71f1c/view">Pre-Schools</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_548c33ea2d99e29ec63a7cc9edcccedc/view">CHAS Clinics</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+    <tr><td><a href="https://data.gov.sg/datasets/d_e4663ad3f088a46dabd3972dc166402d/view">Health Facilities</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
+  </table>
+
+  <hr>
+
+  <h2>Detailed Catalogue by Source</h2>
+
+  <h3>1. data.gov.sg</h3>
+  <p class="section-note">Singapore's open data portal. All datasets openly downloadable under the Open Data Licence.</p>
+  <table>
+    <tr><th>#</th><th>Dataset</th><th>Format</th><th>Key Fields / Notes</th></tr>
+    <tr><td>1</td><td><a href="https://data.gov.sg/datasets/d_8594ae9ff96d0c708bc2af633048edfb/view">Subzone Boundary</a></td><td>GeoJSON</td><td>SUBZONE_N, PLN_AREA_N, CA_IND</td></tr>
+    <tr><td>2</td><td><a href="https://data.gov.sg/datasets/d_90d86daa5bfaa371668b84fa5f19e2d68/view">Land Use Layer (MP2019)</a></td><td>GeoJSON</td><td>LU_DESC, GPR (13.7 MB)</td></tr>
+    <tr><td>3</td><td><a href="https://data.gov.sg/datasets/d_4a086da0a5553be1d89383cd90d07ecd/view">Hawker Centres</a></td><td>GeoJSON</td><td>Name, address, stall count</td></tr>
+    <tr><td>4</td><td><a href="https://data.gov.sg/datasets/d_cac2c32f01960a3ad7202a99c27268a0/view">Supermarkets</a></td><td>GeoJSON</td><td>Business name, address</td></tr>
+    <tr><td>5</td><td><a href="https://data.gov.sg/datasets/d_17f5382f26140b1fdae0ba2ef6239d2f/view">HDB Property Info</a></td><td>CSV</td><td>Year, type, flats count; needs geocoding</td></tr>
+    <tr><td>6</td><td><a href="https://data.gov.sg/collections/189/view">Resale Flat Prices</a></td><td>CSV + API</td><td>Price, area, lease; filter town=QUEENSTOWN</td></tr>
+    <tr><td>7</td><td><a href="https://data.gov.sg/datasets/d_b39d3a0871985372d7e1637193335da5/view">MRT Station Exits</a></td><td>GeoJSON</td><td>Station name, exit code</td></tr>
+    <tr><td>8</td><td><a href="https://data.gov.sg/datasets/d_a69ef89737379f231d2ae93fd1c5707f/view">Park Connector Loop</a></td><td>GeoJSON</td><td>Indicative alignment</td></tr>
+    <tr><td>9</td><td><a href="https://data.gov.sg/datasets/d_8f468b25193f64be8a16fa7d8f60f553/view">Cycling Path Network</a></td><td>GeoJSON</td><td>Symbolic/indicative</td></tr>
+    <tr><td>10</td><td><a href="https://data.gov.sg/dataset/parks">Parks</a></td><td>GeoJSON</td><td>NParks-managed</td></tr>
+    <tr><td>11</td><td><a href="https://data.gov.sg/datasets/d_14d807e20158338fd578c2913953516e/view">Park Facilities</a></td><td>GeoJSON</td><td>Playgrounds, fitness, BBQ</td></tr>
+    <tr><td>12</td><td><a href="https://data.gov.sg/dataset/community-clubs">Community Clubs</a></td><td>GeoJSON</td><td>CC locations</td></tr>
+    <tr><td>13</td><td><a href="https://data.gov.sg/datasets/d_b3ae090692ecf632116c9885cfbd3424/view">Gyms@SG</a></td><td>GeoJSON</td><td>Public exercise facilities</td></tr>
+    <tr><td>14</td><td><a href="https://data.gov.sg/datasets/d_d95ae740c0f8961a0b10435836660ce0/view">Population Census 2020</a></td><td>CSV</td><td>Age, sex by subzone</td></tr>
+  </table>
+
+  <h3>2. URA Maps / Master Plan</h3>
+  <p class="section-note">URA SPACE interactive map and Master Plan datasets. Downloadable layers via data.gov.sg; APIs require free registration.</p>
+  <table>
+    <tr><th>#</th><th>Dataset</th><th>Size</th><th>Key Use</th></tr>
+    <tr><td>1</td><td><a href="https://data.gov.sg/datasets/d_90d86daa5bfaa371668b84fa5f01424f/view">Land Use Layer (MP2019)</a></td><td>166 MB</td><td>Zoning categories</td></tr>
+    <tr><td>2</td><td><a href="https://data.gov.sg/collections/2104/view">Planning Area Boundary</a></td><td>2 MB</td><td>Queenstown boundary</td></tr>
+    <tr><td>3</td><td><a href="https://data.gov.sg/datasets/d_8594ae9ff96d0c708bc2af633048edfb/view">Subzone Boundary</a></td><td>3 MB</td><td>15 Queenstown subzones</td></tr>
+    <tr><td>4</td><td><a href="https://data.gov.sg/datasets/d_ee8e2e0d13a50a699f9100029b8c0b0a/view">Building Height Control</a></td><td>2.7 MB</td><td>Height limits</td></tr>
+    <tr><td>5</td><td><a href="https://data.gov.sg/collections/1650/view">Park &amp; Open Space</a></td><td>&mdash;</td><td>Green network</td></tr>
+    <tr><td>6</td><td><a href="https://data.gov.sg/datasets/d_0b0792ae30cd6cce62e5ea55fc37860e/view">Waterbody Layer</a></td><td>5.3 MB</td><td>Blue network</td></tr>
+  </table>
+
+  <h4>URA APIs (free registration)</h4>
+  <table>
+    <tr><th>API</th><th>Frequency</th><th>Use</th></tr>
+    <tr><td>Car Park Availability</td><td>Every 3&ndash;5 min</td><td>Real-time parking</td></tr>
+    <tr><td>Property Transactions (Private)</td><td>Tue &amp; Fri</td><td>Housing market</td></tr>
+    <tr><td>Median Rentals</td><td>Quarterly</td><td>Rental market</td></tr>
+  </table>
+
+  <h4>Draft Master Plan 2025</h4>
+  <table>
+    <tr><th>Resource</th><th>Format</th></tr>
+    <tr><td><a href="https://www.ura.gov.sg/-/media/Corporate/Planning/Master-Plan/DMP25writtenstatement.pdf">DMP25 Written Statement</a></td><td>PDF</td></tr>
+    <tr><td><a href="https://www.uradraftmasterplan.gov.sg/regional-plans/central-region/introduction/">Central Region Plans</a></td><td>Web</td></tr>
+    <tr><td><a href="https://www.uradraftmasterplan.gov.sg/themes/shaping-a-happy-healthy-city/liveable-and-inclusive-neighbourhoods/">Liveable Neighbourhoods Theme</a></td><td>Web</td></tr>
+  </table>
+  <p class="section-note">Queenstown DMP25 highlights: Queensway Node (community space, 2027), Rail Corridor enhancements, 5,000+ new flats since 2021.</p>
+
+  <h3>3. OneMap</h3>
+  <p class="section-note">Singapore's national map platform by SLA. All APIs require a free token. Base: <code>https://www.onemap.gov.sg/api</code></p>
+  <table>
+    <tr><th>#</th><th>API</th><th>Format</th><th>Key Use</th></tr>
+    <tr><td>1</td><td>Planning Area Boundaries</td><td>GeoJSON</td><td>Study area polygon</td></tr>
+    <tr><td>2</td><td>Population Query (22 datasets)</td><td>JSON</td><td>Demographics (age, ethnicity, income, transport mode)</td></tr>
+    <tr><td>3</td><td>Themes (110+ layers)</td><td>JSON</td><td>POIs: schools, hawkers, parks, healthcare</td></tr>
+    <tr><td>4</td><td>Routing (drive/walk/cycle/PT)</td><td>JSON</td><td>Travel time, distance, route geometry</td></tr>
+    <tr><td>5</td><td>Search / Geocoding</td><td>JSON</td><td>Address to coordinates</td></tr>
+  </table>
+
+  <h3>4. LTA DataMall</h3>
+  <p class="section-note">Land Transport Authority. Static shapefiles openly downloadable; dynamic APIs require a free API key.</p>
+  <table>
+    <tr><th>Category</th><th>Datasets</th><th>Format</th><th>Access</th></tr>
+    <tr><td>Transit</td><td>Bus Stops, Bus Routes, Bus Services, Train Stations, Train Station Exits</td><td>Shapefile / API</td><td><span class="badge badge-open">Open</span> / <span class="badge badge-api">API</span></td></tr>
+    <tr><td>Ridership</td><td>Passenger Volume (Bus/Train), OD Volume (Bus/Train)</td><td>JSON API</td><td><span class="badge badge-api">API key</span></td></tr>
+    <tr><td>Active Mobility</td><td>Cycling Path, Bicycle Parking, Footpath, Covered Linkway, Ped. Bridges</td><td>Shapefile / API</td><td><span class="badge badge-open">Open</span> / <span class="badge badge-api">API</span></td></tr>
+    <tr><td>Road</td><td>Road Section Line, Traffic Count (518 MB), Traffic Speed Bands</td><td>Shapefile / API</td><td><span class="badge badge-open">Open</span> / <span class="badge badge-api">API</span></td></tr>
+    <tr><td>Other</td><td>Taxi Stands, Lamp Posts, EV Charging, Carpark Availability</td><td>Various</td><td><span class="badge badge-open">Open</span> / <span class="badge badge-api">API</span></td></tr>
+    <tr><td>On-Request</td><td>Farecard Transactions, Taxi/PHC Trip Data</td><td>&mdash;</td><td><span class="badge badge-nda">NDA</span></td></tr>
+  </table>
+
+  <h3>5. Mapillary</h3>
+  <p class="section-note">Crowdsourced street-level imagery (Meta). Images CC BY-SA 4.0. API: <code>https://graph.mapillary.com</code></p>
+  <table>
+    <tr><th>#</th><th>Dataset</th><th>Format</th><th>Use</th></tr>
+    <tr><td>1</td><td>Street-Level Imagery</td><td>JPEG + JSON</td><td>Pedestrian-perspective visual audit</td></tr>
+    <tr><td>2</td><td>Map Feature Points (42 categories)</td><td>GeoJSON / Vector tiles</td><td>Benches, bike racks, crosswalks, lamps</td></tr>
+    <tr><td>3</td><td>Traffic Sign Detections (~1,500 classes)</td><td>GeoJSON / Vector tiles</td><td>Wayfinding, signage</td></tr>
+    <tr><td>4</td><td>Image Segmentation</td><td>JSON per-image</td><td>Green View Index (GVI)</td></tr>
+    <tr><td>5</td><td>3D Point Clouds (SfM)</td><td>JSON (zlib)</td><td>Street geometry, canopy estimation</td></tr>
+  </table>
+
+  <hr>
+
+  <h2>Access Requirements</h2>
+  <table>
+    <tr><th>Level</th><th>Sources</th><th>What You Need</th></tr>
+    <tr><td><span class="badge badge-open">Open download</span></td><td>data.gov.sg, LTA static shapefiles</td><td>Nothing &mdash; direct download</td></tr>
+    <tr><td><span class="badge badge-api">Free API token</span></td><td>OneMap, LTA DataMall, Mapillary</td><td>Register online, get token/key</td></tr>
+    <tr><td><span class="badge badge-api">Free API key</span></td><td>URA Data Service</td><td>Register at URA SPACE</td></tr>
+    <tr><td><span class="badge badge-nda">NDA required</span></td><td>LTA farecard/taxi trip data</td><td>Data sharing form + NDA</td></tr>
+    <tr><td><span class="badge badge-web">View-only</span></td><td>URA SPACE map, DMP25 website</td><td>Browser</td></tr>
+  </table>
+
+  <hr>
+
+  <h2>Key Spatial Join Fields</h2>
+  <table class="join-table">
+    <tr><th>Join Type</th><th>Field</th><th>Datasets Connected</th></tr>
+    <tr><td>Planning area name</td><td><code>PLN_AREA_N = "QUEENSTOWN"</code></td><td>Boundaries, census, OneMap population, URA sale sites</td></tr>
+    <tr><td>Subzone name</td><td><code>SUBZONE_N</code></td><td>Boundaries, census (finer granularity)</td></tr>
+    <tr><td>Lat/Lng coordinates</td><td>WGS84 (EPSG:4326)</td><td>All point datasets, Mapillary, OneMap routing</td></tr>
+    <tr><td>SVY21 coordinates</td><td>EPSG:3414</td><td>URA APIs, some LTA data</td></tr>
+    <tr><td>Bus stop code</td><td><code>bus_stop_code</code></td><td>LTA bus stops, routes, passenger volumes</td></tr>
+    <tr><td>Station name/code</td><td><code>station_name</code></td><td>LTA train stations, exits, passenger volumes</td></tr>
+    <tr><td>Spatial clip/intersect</td><td>Polygon boundary</td><td>All geospatial layers clipped to Queenstown</td></tr>
+    <tr><td>Address / postal code</td><td>Text matching</td><td>HDB data, schools, OneMap geocoding</td></tr>
+  </table>
+
+  <hr>
+
+  <h2>Gaps &amp; Limitations</h2>
+  <div class="gap-item"><strong>No noise pollution data</strong> &mdash; would require primary data collection</div>
+  <div class="gap-item"><strong>No pedestrian foot traffic counts</strong> &mdash; could estimate via Mapillary or field observation</div>
+  <div class="gap-item"><strong>No sentiment/perception data</strong> &mdash; requires primary research (surveys, interviews)</div>
+  <div class="gap-item"><strong>Microclimate data is coarse</strong> &mdash; weather stations don't capture Queenstown-specific microclimates</div>
+  <div class="gap-item"><strong>DMP25 not yet machine-readable</strong> &mdash; must rely on MP2019 GeoJSON + DMP25 PDF/web</div>
+  <div class="gap-item"><strong>Some CSV datasets need geocoding</strong> &mdash; HDB Property Info, Schools (use OneMap Search API)</div>
+
+</body>
+</html>

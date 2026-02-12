@@ -28,7 +28,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install Python dependencies
-        run: pip install numpy pyproj mapbox_earcut py3dtiles
+        run: pip install numpy pyproj mapbox_earcut py3dtiles shapely
+
+      - name: Generate subzone summary (GeoJSON + CSV)
+        run: python generate_subzone_summary.py
 
       - name: Generate 3D Tiles (B3DM + tileset.json)
         run: python generate_3dtiles.py
