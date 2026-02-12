@@ -16,3 +16,6 @@ literature/papers/*.pdf
 
 # Playwright MCP
 .playwright-mcp/
+
+# Claude Code local settings (personal permissions, not shared)
+.claude/settings.local.json

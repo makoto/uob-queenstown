@@ -25,6 +25,11 @@
     .layer-row input[type="checkbox"] { margin: 0; cursor: pointer; }
     .layer-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .layer-label { flex: 1; }
+    .choropleth-select { width: 100%; padding: 4px 6px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); border-radius: 3px; font-family: sans-serif; font-size: 12px; margin: 4px 12px; box-sizing: border-box; width: calc(100% - 24px); cursor: pointer; }
+    .choropleth-select option { background: #222; color: white; }
+    #choropleth-legend { margin: 4px 12px 6px; display: none; }
+    #choropleth-legend .gradient-bar { height: 10px; border-radius: 2px; background: linear-gradient(to right, #ffffb2, #fecc5c, #fd8d3c, #f03b20, #bd0026); }
+    #choropleth-legend .legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -306,6 +311,29 @@
 
     function buildLayerPanel() {
       const body = document.getElementById('layer-panel-body');
+
+      // Choropleth group at the top
+      const choroTitle = document.createElement('div');
+      choroTitle.className = 'layer-group-title';
+      choroTitle.textContent = 'Choropleth';
+      body.appendChild(choroTitle);
+
+      const choroSelect = document.createElement('select');
+      choroSelect.className = 'choropleth-select';
+      CHOROPLETH_METRICS.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.value;
+        opt.textContent = m.label;
+        choroSelect.appendChild(opt);
+      });
+      choroSelect.addEventListener('change', () => updateChoropleth(choroSelect.value));
+      body.appendChild(choroSelect);
+
+      const legendDiv = document.createElement('div');
+      legendDiv.id = 'choropleth-legend';
+      legendDiv.innerHTML = '<div class="gradient-bar"></div><div class="legend-labels"><span id="choropleth-min"></span><span id="choropleth-max"></span></div>';
+      body.appendChild(legendDiv);
+
       let currentGroup = null;
       LAYERS.forEach(layer => {
         if (layer.group !== currentGroup) {
@@ -394,6 +422,121 @@
       if (layerState[id].dataSource) {
         layerState[id].dataSource.show = visible;
       }
+    }
+
+    // ---------------------------------------------------------------
+    // Choropleth heatmap
+    // ---------------------------------------------------------------
+    const CHOROPLETH_METRICS = [
+      { value: '', label: 'Off' },
+      { value: 'population_density', label: 'Population density', unit: '/km²', fmt: 'int' },
+      { value: 'elderly_pct', label: 'Elderly share (65+)', unit: '%', fmt: 'pct', derived: true },
+      { value: 'amenity_density', label: 'Amenity density', unit: '/km²', fmt: 'float' },
+      { value: 'mrt_station_count', label: 'MRT stations', unit: '', fmt: 'int' },
+      { value: 'cycling_path_km', label: 'Cycling paths', unit: ' km', fmt: 'float' },
+      { value: 'park_connector_km', label: 'Park connectors', unit: ' km', fmt: 'float' },
+      { value: 'resale_median_price', label: 'Resale flat price', unit: '', fmt: 'price' },
+      { value: 'mean_height_m', label: 'Avg building height', unit: ' m', fmt: 'float' },
+    ];
+
+    const RAMP_COLORS = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];
+    const RAMP_CESIUM = RAMP_COLORS.map(c => Cesium.Color.fromCssColorString(c).withAlpha(0.55));
+    const GRAY_COLOR = Cesium.Color.GRAY.withAlpha(0.25);
+
+    let choroplethGeoJSON = null;
+    let choroplethEntities = [];
+
+    function getMetricValue(props, metricKey) {
+      if (metricKey === 'elderly_pct') {
+        const total = props.population_total;
+        const elderly = props.population_elderly_65plus;
+        if (!total || total === 0) return null;
+        return (elderly / total) * 100;
+      }
+      const v = props[metricKey];
+      return (v === null || v === undefined) ? null : v;
+    }
+
+    function formatValue(v, fmt, unit) {
+      if (v === null || v === undefined) return '—';
+      if (fmt === 'int') return v.toLocaleString() + unit;
+      if (fmt === 'float') return v.toFixed(1) + unit;
+      if (fmt === 'pct') return v.toFixed(1) + '%';
+      if (fmt === 'price') return '$' + Math.round(v / 1000).toLocaleString() + 'K';
+      return String(v) + unit;
+    }
+
+    function colorForValue(v, min, max) {
+      if (v === null || v === undefined) return GRAY_COLOR;
+      if (max === min) return RAMP_CESIUM[2];
+      const t = (v - min) / (max - min);
+      const idx = Math.min(Math.floor(t * RAMP_CESIUM.length), RAMP_CESIUM.length - 1);
+      return RAMP_CESIUM[idx];
+    }
+
+    function coordsToHierarchy(coords, type) {
+      const rings = [];
+      if (type === 'MultiPolygon') {
+        coords.forEach(poly => rings.push(poly[0]));
+      } else {
+        rings.push(coords[0]);
+      }
+      // Use first ring (largest polygon for MultiPolygon)
+      const positions = rings[0].map(p => Cesium.Cartesian3.fromDegrees(p[0], p[1]));
+      return new Cesium.PolygonHierarchy(positions);
+    }
+
+    async function updateChoropleth(metricKey) {
+      const legend = document.getElementById('choropleth-legend');
+      if (!metricKey) {
+        choroplethEntities.forEach(e => { e.show = false; });
+        legend.style.display = 'none';
+        return;
+      }
+
+      // Lazy-load GeoJSON
+      if (!choroplethGeoJSON) {
+        const resp = await fetch('../geo/queenstown-subzone-summary.geojson');
+        choroplethGeoJSON = await resp.json();
+      }
+
+      const features = choroplethGeoJSON.features;
+      const metric = CHOROPLETH_METRICS.find(m => m.value === metricKey);
+
+      // Create entities on first use
+      if (choroplethEntities.length === 0) {
+        features.forEach(feature => {
+          const hierarchy = coordsToHierarchy(feature.geometry.coordinates, feature.geometry.type);
+          const entity = viewer.entities.add({
+            polygon: {
+              hierarchy: hierarchy,
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+              material: GRAY_COLOR,
+              outline: false,
+            },
+            properties: feature.properties,
+          });
+          choroplethEntities.push(entity);
+        });
+      }
+
+      // Compute min/max
+      const values = features.map(f => getMetricValue(f.properties, metricKey));
+      const valid = values.filter(v => v !== null && v !== undefined);
+      const min = Math.min(...valid);
+      const max = Math.max(...valid);
+
+      // Color each entity
+      choroplethEntities.forEach((entity, i) => {
+        const v = values[i];
+        entity.polygon.material = colorForValue(v, min, max);
+        entity.show = true;
+      });
+
+      // Update legend
+      legend.style.display = 'block';
+      document.getElementById('choropleth-min').textContent = formatValue(min, metric.fmt, metric.unit);
+      document.getElementById('choropleth-max').textContent = formatValue(max, metric.fmt, metric.unit);
     }
 
     buildLayerPanel();

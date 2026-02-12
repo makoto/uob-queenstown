@@ -61,3 +61,4 @@ CesiumJS-based viewer with:
 - **Layer panel** (top-right): 13 toggleable overlays grouped by category (Food & Daily Needs, Transit, Green & Recreation, Active Mobility, Community)
 - Layers are lazy-loaded on first checkbox toggle via `GeoJsonDataSource`
 - Basemap toggle (dark/light CARTO)
+- **Choropleth heatmap**: dropdown at the top of the layer panel to visualise subzone-level metrics as a colour overlay (YlOrRd 5-step ramp, alpha 0.55). Available metrics: population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height. Data sourced from `queenstown-subzone-summary.geojson`, lazy-loaded and cached. Legend updates with formatted min/max per metric.
