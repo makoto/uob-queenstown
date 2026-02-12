@@ -9,7 +9,12 @@
     a { color: #2c5f8a; }
     .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px 20px; margin: 16px 0; }
     .card h3 { margin: 0 0 8px 0; }
-    .card p { margin: 0; color: #555; }
+    .card p { margin: 0 0 8px 0; color: #555; }
+    .card table { font-size: 13px; border-collapse: collapse; margin-top: 10px; width: 100%; }
+    .card th, .card td { text-align: left; padding: 3px 10px 3px 0; }
+    .card th { color: #666; font-weight: 600; border-bottom: 1px solid #eee; }
+    .card td { color: #555; }
+    .details { font-size: 13px; color: #555; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -19,6 +24,18 @@
   <div class="card">
     <h3><a href="3dtiles/viewer.html">3D Buildings Viewer</a></h3>
     <p>8,671 extruded buildings with height-based colour coding and Queenstown boundary overlay. Built with CesiumJS and 3D Tiles.</p>
+    <div class="details">
+      <p><strong>Data sources:</strong> OpenStreetMap building footprints (Overpass API) enriched with HDB property records (data.gov.sg). 308 HDB blocks matched by block number + street name.</p>
+      <table>
+        <tr><th>Height source</th><th>Count</th><th>Method</th></tr>
+        <tr><td>Measured (OSM tag)</td><td>232 (2.7%)</td><td>Most reliable</td></tr>
+        <tr><td>Building levels</td><td>2,284 (26.3%)</td><td>Storeys &times; 3m</td></tr>
+        <tr><td>HDB floor levels</td><td>258 (3.0%)</td><td>Max floor &times; 3m</td></tr>
+        <tr><td>Estimated default</td><td>5,897 (68.0%)</td><td>By building type</td></tr>
+      </table>
+      <p style="margin-top:8px"><strong>Height range:</strong> 3m &ndash; 183m (mean 14.2m, median 10m). Tallest: mTower (183m), SkyVille @ Dawson (141m, 47 storeys).</p>
+      <p><strong>Click any building</strong> to see: name, type, height, storeys, data source, and HDB year completed.</p>
+    </div>
   </div>
 
   <h2>Data Files</h2>
@@ -29,6 +46,8 @@
     <li><a href="geo/queenstown-buildings-hdb-enriched.geojson">HDB Buildings</a> (308 features)</li>
     <li><a href="geo/queenstown-buildings-osm-only.geojson">OSM-Only Buildings</a> (8,363 features)</li>
     <li><a href="geo/queenstown-ura-height-control.geojson">URA Height Control Zones</a> (7 features)</li>
+    <li><a href="https://drive.google.com/file/d/1CEFWx4flMDvdmLRSiMyWuDD1IK75X9jQ/view?usp=sharing">3dtiles(zipped)</a></li>
+    
   </ul>
 </body>
 </html>
