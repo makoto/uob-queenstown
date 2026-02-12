@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Rules
+
+- **Never commit unless explicitly asked.** Do not run `git add` or `git commit` unless the user specifically requests it.
+
 ## Project Overview
 
 This is an academic research project investigating **perceived liveability in Singapore's Queenstown district**. The goal is to connect subjective perceptions of liveability with objective spatial indicators and translate findings into planning insights.
