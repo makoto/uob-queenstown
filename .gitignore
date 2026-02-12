@@ -1,0 +1,8 @@
+# Source data (too large to commit — see data_catalogue.md for download instructions)
+data/
+
+# OS files
+.DS_Store
+
+# Raw Overpass API download
+data/osm/queenstown-buildings.json
