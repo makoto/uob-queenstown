@@ -27,6 +27,11 @@
     .layer-label { flex: 1; }
     .choropleth-select { width: 100%; padding: 4px 6px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); border-radius: 3px; font-family: sans-serif; font-size: 12px; margin: 4px 12px; box-sizing: border-box; width: calc(100% - 24px); cursor: pointer; }
     .choropleth-select option { background: #222; color: white; }
+    .provenance-bar { display: flex; gap: 6px; padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .provenance-btn { flex: 1; padding: 4px 8px; border: 1px solid rgba(255,255,255,0.25); border-radius: 3px; background: rgba(255,255,255,0.12); color: white; font-size: 11px; cursor: pointer; text-align: center; user-select: none; }
+    .provenance-btn.active { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+    .provenance-btn:hover { background: rgba(255,255,255,0.2); }
+    .source-badge { font-size: 9px; color: #888; margin-left: 4px; flex-shrink: 0; }
     #choropleth-legend { margin: 4px 12px 6px; display: none; }
     #choropleth-legend .gradient-bar { height: 10px; border-radius: 2px; background: linear-gradient(to right, #ffffb2, #fecc5c, #fd8d3c, #f03b20, #bd0026); }
     #choropleth-legend .legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; margin-top: 2px; }
@@ -36,7 +41,7 @@
   <div id="cesiumContainer"></div>
   <div id="info">
     <h3>Queenstown 3D Buildings</h3>
-    <div>8,671 buildings | Click a building for details</div>
+    <div>8,671 buildings | 22 layers | Click for details</div>
     <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light</button>
     <div class="legend">
       <div style="color:#999; margin-bottom:2px;">Building height</div>
@@ -264,6 +269,68 @@
 
         pickedDiv.innerHTML = html;
         pickedDiv.style.display = 'block';
+      } else if (picked && picked.id && picked.id.properties) {
+        // GeoJSON entity (e.g. HDB blocks, height control)
+        const props = picked.id.properties;
+        const gv = (k) => props[k] ? props[k].getValue() : null;
+        let html = '';
+        if (gv('hdb_match')) {
+          // HDB block info
+          const name = gv('name') || gv('addr_housenumber') || '(unnamed)';
+          const street = gv('addr_street') || '';
+          html = `<b>${name}</b>`;
+          if (street) html += ` ${street}`;
+          html += '<br>';
+          const year = gv('hdb_year_completed');
+          if (year) html += `Year completed: ${year}<br>`;
+          const units = gv('hdb_total_dwelling_units');
+          if (units) html += `Dwelling units: ${units}<br>`;
+          if (gv('hdb_residential') === 'Y') html += 'Residential ';
+          if (gv('hdb_commercial') === 'Y') html += 'Commercial ';
+          if (gv('hdb_market_hawker') === 'Y') html += 'Market/Hawker ';
+          html += '<br>';
+        } else if (gv('HT_CTL_TXT')) {
+          html = `<b>Height control zone</b><br>`;
+          html += `Max storeys: ${gv('HT_CTL_TXT')}<br>`;
+          const typ = gv('HT_CTL_TYP');
+          if (typ) html += `Type: ${typ}<br>`;
+        } else if (gv('ndvi') !== null && gv('cell_id') !== null) {
+          // RS grid cell
+          html = `<b>Grid cell #${gv('cell_id')}</b> (100m)<br>`;
+          html += `NDVI: ${gv('ndvi')}<br>`;
+          html += `NDBI: ${gv('ndbi')}<br>`;
+          html += `LST: ${gv('lst_c')} °C<br>`;
+          html += `Canopy: ${gv('canopy_pct')}%<br>`;
+        } else if (gv('ndvi_mean') !== null) {
+          // Remote sensing subzone
+          const name = gv('subzone_name') || '(subzone)';
+          html = `<b>${name}</b> (Remote Sensing)<br>`;
+          html += `NDVI: ${gv('ndvi_mean')}<br>`;
+          html += `NDBI: ${gv('ndbi_mean')}<br>`;
+          html += `LST: ${gv('lst_mean_c')} °C<br>`;
+          html += `Canopy cover: ${gv('canopy_cover_pct')}%<br>`;
+          html += `GHSL height: ${gv('ghsl_height_mean')} m<br>`;
+          html += `DSM: ${gv('dsm_mean')} m | DEM: ${gv('dem_mean')} m<br>`;
+        } else if (gv('betweenness') !== null) {
+          // Street network edge
+          const name = gv('name') || '(unnamed road)';
+          html = `<b>${name}</b><br>`;
+          html += `Length: ${gv('length')} m<br>`;
+          html += `Betweenness: ${gv('betweenness')}<br>`;
+          const hw = gv('highway');
+          if (hw) html += `Type: ${hw}<br>`;
+        } else if (gv('image_id')) {
+          // Mapillary image
+          html = `<b>Mapillary image</b><br>`;
+          html += `ID: ${gv('image_id')}<br>`;
+          const isPano = gv('is_pano');
+          if (isPano) html += 'Panoramic<br>';
+        } else {
+          const name = gv('name') || gv('Name') || '(feature)';
+          html = `<b>${name}</b><br>`;
+        }
+        pickedDiv.innerHTML = html;
+        pickedDiv.style.display = 'block';
       } else {
         pickedDiv.style.display = 'none';
       }
@@ -279,27 +346,42 @@
       document.getElementById('layer-panel-arrow').innerHTML = layerPanelOpen ? '&#9660;' : '&#9654;';
     }
 
-    // Layer definitions: { id, label, file, color, type, group, onByDefault }
+    // Layer definitions: { id, label, file, color, type, group, onByDefault, source }
     const LAYERS = [
       // Boundaries (loaded separately above, managed via entity show/hide)
       { id: 'boundary', label: 'Queenstown boundary', color: '#ff00ff', group: 'Boundaries', onByDefault: true, builtin: true },
       { id: 'subzones', label: 'Subzones', color: '#00ffff', group: 'Boundaries', onByDefault: true, builtin: true },
       // Food & Daily Needs
-      { id: 'hawker', label: 'Hawker centres', file: '../geo/queenstown-hawker-centres.geojson', color: '#ff6b35', group: 'Food & Daily Needs', type: 'point' },
-      { id: 'supermarket', label: 'Supermarkets', file: '../geo/queenstown-supermarkets.geojson', color: '#4ecdc4', group: 'Food & Daily Needs', type: 'point' },
+      { id: 'hawker', label: 'Hawker centres', file: '../geo/gov-sg/queenstown-hawker-centres.geojson', color: '#ff6b35', group: 'Food & Daily Needs', type: 'point', source: 'gov-sg' },
+      { id: 'supermarket', label: 'Supermarkets', file: '../geo/gov-sg/queenstown-supermarkets.geojson', color: '#4ecdc4', group: 'Food & Daily Needs', type: 'point', source: 'gov-sg' },
       // Transit
-      { id: 'mrt', label: 'MRT exits', file: '../geo/queenstown-mrt-exits.geojson', color: '#2c5f8a', group: 'Transit', type: 'point' },
+      { id: 'mrt', label: 'MRT exits', file: '../geo/gov-sg/queenstown-mrt-exits.geojson', color: '#2c5f8a', group: 'Transit', type: 'point', source: 'gov-sg' },
       // Green & Recreation
-      { id: 'parks', label: 'Parks', file: '../geo/queenstown-parks.geojson', color: '#45b649', group: 'Green & Recreation', type: 'point' },
-      { id: 'parkfac', label: 'Park facilities', file: '../geo/queenstown-park-facilities.geojson', color: '#7bc67e', group: 'Green & Recreation', type: 'point' },
-      { id: 'parkconn', label: 'Park connectors', file: '../geo/queenstown-park-connectors.geojson', color: '#44ff44', group: 'Green & Recreation', type: 'line' },
+      { id: 'parks', label: 'Parks', file: '../geo/gov-sg/queenstown-parks.geojson', color: '#45b649', group: 'Green & Recreation', type: 'point', source: 'gov-sg' },
+      { id: 'parkfac', label: 'Park facilities', file: '../geo/gov-sg/queenstown-park-facilities.geojson', color: '#7bc67e', group: 'Green & Recreation', type: 'point', source: 'gov-sg' },
+      { id: 'parkconn', label: 'Park connectors', file: '../geo/gov-sg/queenstown-park-connectors.geojson', color: '#44ff44', group: 'Green & Recreation', type: 'line', source: 'gov-sg' },
       // Active Mobility
-      { id: 'cycling', label: 'Cycling paths', file: '../geo/queenstown-cycling-paths.geojson', color: '#00ff88', group: 'Active Mobility', type: 'line' },
+      { id: 'cycling', label: 'Cycling paths', file: '../geo/gov-sg/queenstown-cycling-paths.geojson', color: '#00ff88', group: 'Active Mobility', type: 'line', source: 'gov-sg' },
       // Community
-      { id: 'cc', label: 'Community clubs', file: '../geo/queenstown-community-clubs.geojson', color: '#9b59b6', group: 'Community', type: 'point' },
-      { id: 'gym', label: 'Gyms', file: '../geo/queenstown-gyms.geojson', color: '#e74c3c', group: 'Community', type: 'point' },
-      { id: 'preschool', label: 'Pre-schools', file: '../geo/queenstown-preschools.geojson', color: '#f39c12', group: 'Community', type: 'point' },
-      { id: 'chas', label: 'CHAS clinics', file: '../geo/queenstown-chas-clinics.geojson', color: '#e84393', group: 'Community', type: 'point' },
+      { id: 'cc', label: 'Community clubs', file: '../geo/gov-sg/queenstown-community-clubs.geojson', color: '#9b59b6', group: 'Community', type: 'point', source: 'gov-sg' },
+      { id: 'gym', label: 'Gyms', file: '../geo/gov-sg/queenstown-gyms.geojson', color: '#e74c3c', group: 'Community', type: 'point', source: 'gov-sg' },
+      { id: 'preschool', label: 'Pre-schools', file: '../geo/gov-sg/queenstown-preschools.geojson', color: '#f39c12', group: 'Community', type: 'point', source: 'gov-sg' },
+      { id: 'chas', label: 'CHAS clinics', file: '../geo/gov-sg/queenstown-chas-clinics.geojson', color: '#e84393', group: 'Community', type: 'point', source: 'gov-sg' },
+      // Housing
+      { id: 'hdb', label: 'HDB blocks', file: '../geo/global/queenstown-buildings-hdb-enriched.geojson', color: '#ff5722', group: 'Housing', type: 'point', source: 'global' },
+      // Planning
+      { id: 'heightctl', label: 'Height control zones', file: '../geo/gov-sg/queenstown-ura-height-control.geojson', color: '#ff9800', group: 'Planning', type: 'polygon', source: 'gov-sg' },
+      // Street Network (global)
+      { id: 'streetnet', label: 'Street network', file: '../geo/global/queenstown-street-network.geojson', color: '#00bcd4', group: 'Street Network', type: 'line', source: 'global' },
+      // Remote Sensing — raster image overlays (global)
+      { id: 'rs_ndvi', label: 'NDVI (vegetation)', rasterFile: '../geo/global/rasters/queenstown-ndvi.png', color: '#4caf50', group: 'Remote Sensing', type: 'raster', source: 'global' },
+      { id: 'rs_lst', label: 'Land surface temp', rasterFile: '../geo/global/rasters/queenstown-lst.png', color: '#f44336', group: 'Remote Sensing', type: 'raster', source: 'global' },
+      { id: 'rs_ndbi', label: 'Built-up (NDBI)', rasterFile: '../geo/global/rasters/queenstown-ndbi.png', color: '#ff9800', group: 'Remote Sensing', type: 'raster', source: 'global' },
+      { id: 'rs_canopy', label: 'Tree canopy cover', rasterFile: '../geo/global/rasters/queenstown-canopy.png', color: '#2e7d32', group: 'Remote Sensing', type: 'raster', source: 'global' },
+      // Remote Sensing — clickable 100m grid (global)
+      { id: 'rs_grid', label: '100m grid (clickable)', file: '../geo/global/queenstown-rs-grid.geojson', color: '#8bc34a', group: 'Remote Sensing', type: 'polygon', source: 'global' },
+      // Street-Level (global)
+      { id: 'mapillary', label: 'Mapillary images', file: '../geo/global/queenstown-mapillary-gvi.geojson', color: '#03a9f4', group: 'Street-Level', type: 'point', source: 'global' },
     ];
 
     // Track loaded data sources and built-in entity collections
@@ -309,8 +391,54 @@
     // We'll retroactively tag them after they load. Store entity references.
     const builtinEntities = { boundary: [], subzones: [] };
 
+    // Provenance filter state
+    const provenanceState = { 'gov-sg': true, 'global': true };
+
+    function onProvenanceToggle(source, enabled) {
+      provenanceState[source] = enabled;
+      LAYERS.forEach(layer => {
+        if (layer.source !== source) return;
+        const cb = document.getElementById('layer-cb-' + layer.id);
+        if (!cb) return;
+        if (enabled) {
+          // Restore — don't auto-enable, just allow interaction
+        } else {
+          // Hide layers of this source
+          if (cb.checked) {
+            cb.checked = false;
+            onLayerToggle(layer.id, false);
+          }
+        }
+        cb.disabled = !enabled;
+        cb.closest('.layer-row').style.opacity = enabled ? '1' : '0.4';
+      });
+    }
+
     function buildLayerPanel() {
       const body = document.getElementById('layer-panel-body');
+
+      // Provenance filter bar
+      const provBar = document.createElement('div');
+      provBar.className = 'provenance-bar';
+      const btnGov = document.createElement('button');
+      btnGov.className = 'provenance-btn active';
+      btnGov.textContent = '\uD83C\uDDF8\uD83C\uDDEC Gov.sg';
+      btnGov.addEventListener('click', () => {
+        provenanceState['gov-sg'] = !provenanceState['gov-sg'];
+        btnGov.classList.toggle('active', provenanceState['gov-sg']);
+        onProvenanceToggle('gov-sg', provenanceState['gov-sg']);
+      });
+      const btnGlobal = document.createElement('button');
+      btnGlobal.className = 'provenance-btn active';
+      btnGlobal.textContent = '\uD83C\uDF10 Global';
+      btnGlobal.addEventListener('click', () => {
+        provenanceState['global'] = !provenanceState['global'];
+        btnGlobal.classList.toggle('active', provenanceState['global']);
+        onProvenanceToggle('global', provenanceState['global']);
+      });
+      provBar.appendChild(btnGov);
+      provBar.appendChild(btnGlobal);
+      body.appendChild(provBar);
 
       // Choropleth group at the top
       const choroTitle = document.createElement('div');
@@ -348,6 +476,7 @@
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
+        cb.id = 'layer-cb-' + layer.id;
         cb.checked = !!layer.onByDefault;
         cb.addEventListener('change', () => onLayerToggle(layer.id, cb.checked));
 
@@ -358,6 +487,14 @@
           swatch.style.borderRadius = '2px';
           swatch.style.width = '14px';
           swatch.style.height = '4px';
+        } else if (layer.type === 'raster') {
+          swatch.style.borderRadius = '2px';
+          swatch.style.width = '14px';
+          swatch.style.height = '10px';
+          swatch.style.background = `linear-gradient(to right, ${layer.color}44, ${layer.color})`;
+        } else if (layer.type === 'polygon') {
+          swatch.style.borderRadius = '2px';
+          swatch.style.opacity = '0.5';
         }
 
         const label = document.createElement('span');
@@ -367,6 +504,15 @@
         row.appendChild(cb);
         row.appendChild(swatch);
         row.appendChild(label);
+
+        // Source badge
+        if (layer.source) {
+          const badge = document.createElement('span');
+          badge.className = 'source-badge';
+          badge.textContent = layer.source === 'gov-sg' ? 'SG' : '\uD83C\uDF10';
+          row.appendChild(badge);
+        }
+
         body.appendChild(row);
 
         layerState[layer.id] = { dataSource: null, loaded: false, visible: cb.checked };
@@ -383,6 +529,24 @@
         return;
       }
 
+      // Raster image overlays
+      if (layer.type === 'raster') {
+        if (visible && !layerState[id].loaded) {
+          layerState[id].loaded = true;
+          const rasterLayer = viewer.imageryLayers.addImageryProvider(
+            new Cesium.SingleTileImageryProvider({
+              url: layer.rasterFile,
+              rectangle: Cesium.Rectangle.fromDegrees(103.7502, 1.2550, 103.8166, 1.3188),
+            })
+          );
+          rasterLayer.alpha = 0.65;
+          layerState[id].imageryLayer = rasterLayer;
+        } else if (layerState[id].imageryLayer) {
+          layerState[id].imageryLayer.show = visible;
+        }
+        return;
+      }
+
       // Lazy-load on first toggle-on
       if (visible && !layerState[id].loaded) {
         layerState[id].loaded = true;
@@ -394,8 +558,96 @@
             markerColor: Cesium.Color.fromCssColorString(layer.color),
             markerSize: 18,
           });
+          // HDB blocks — colour by year completed
+          if (id === 'hdb') {
+            ds.entities.values.forEach(entity => {
+              if (entity.billboard) entity.billboard = undefined;
+              if (entity.polygon) entity.polygon.show = false;
+              const props = entity.properties;
+              if (!props || !props.hdb_match || !props.hdb_match.getValue()) return;
+              const year = props.hdb_year_completed ? props.hdb_year_completed.getValue() : null;
+              let c = Cesium.Color.fromCssColorString('#e74c3c'); // pre-1980
+              if (year && year >= 2000) c = Cesium.Color.fromCssColorString('#2ecc71');
+              else if (year && year >= 1980) c = Cesium.Color.fromCssColorString('#f39c12');
+              const centroid = entity.position ? entity.position.getValue(Cesium.JulianDate.now()) : null;
+              entity.point = new Cesium.PointGraphics({
+                pixelSize: 9,
+                color: c,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 1,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              });
+            });
+          }
+          // Street network — colour lines by betweenness centrality
+          else if (id === 'streetnet') {
+            ds.entities.values.forEach(entity => {
+              if (entity.polyline) {
+                const props = entity.properties;
+                const bc = props && props.betweenness ? props.betweenness.getValue() : 0;
+                // Color ramp: low=cyan, mid=yellow, high=red
+                let c = Cesium.Color.fromCssColorString('#00bcd4');
+                if (bc > 0.01) c = Cesium.Color.fromCssColorString('#ff5722');
+                else if (bc > 0.005) c = Cesium.Color.fromCssColorString('#ff9800');
+                else if (bc > 0.002) c = Cesium.Color.fromCssColorString('#ffeb3b');
+                entity.polyline.material = c;
+                entity.polyline.width = bc > 0.005 ? 4 : 2;
+              }
+            });
+          }
+          // RS grid — colour 100m cells by NDVI
+          else if (id === 'rs_grid') {
+            ds.entities.values.forEach(entity => {
+              if (entity.polygon) {
+                const props = entity.properties;
+                const ndvi = props && props.ndvi ? props.ndvi.getValue() : 0;
+                const alpha = 0.5;
+                let c;
+                if (ndvi > 0.6) c = Cesium.Color.fromCssColorString('#1b5e20').withAlpha(alpha);
+                else if (ndvi > 0.5) c = Cesium.Color.fromCssColorString('#2e7d32').withAlpha(alpha);
+                else if (ndvi > 0.4) c = Cesium.Color.fromCssColorString('#388e3c').withAlpha(alpha);
+                else if (ndvi > 0.3) c = Cesium.Color.fromCssColorString('#66bb6a').withAlpha(alpha);
+                else if (ndvi > 0.2) c = Cesium.Color.fromCssColorString('#a5d6a7').withAlpha(alpha);
+                else c = Cesium.Color.fromCssColorString('#e8f5e9').withAlpha(alpha);
+                entity.polygon.material = c;
+                entity.polygon.outline = false;
+                entity.polygon.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
+              }
+            });
+          }
+          // Polygon layers (e.g. height control zones)
+          else if (layer.type === 'polygon') {
+            const baseColor = Cesium.Color.fromCssColorString(layer.color);
+            ds.entities.values.forEach(entity => {
+              if (entity.polygon) {
+                entity.polygon.material = baseColor.withAlpha(0.3);
+                entity.polygon.outline = true;
+                entity.polygon.outlineColor = baseColor;
+                entity.polygon.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
+              }
+              // Add label with height control text
+              const props = entity.properties;
+              if (props && props.HT_CTL_TXT) {
+                const htText = props.HT_CTL_TXT.getValue();
+                if (htText) {
+                  entity.label = new Cesium.LabelGraphics({
+                    text: htText + ' sty',
+                    font: 'bold 12px sans-serif',
+                    fillColor: Cesium.Color.WHITE,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                    scaleByDistance: new Cesium.NearFarScalar(500, 1.0, 5000, 0.4),
+                  });
+                }
+              }
+            });
+          }
           // For point layers, override billboard with simple colored circles
-          if (layer.type === 'point') {
+          else if (layer.type === 'point') {
             ds.entities.values.forEach(entity => {
               if (entity.billboard) {
                 entity.billboard = undefined;
@@ -422,6 +674,9 @@
       if (layerState[id].dataSource) {
         layerState[id].dataSource.show = visible;
       }
+      if (layerState[id].imageryLayer) {
+        layerState[id].imageryLayer.show = visible;
+      }
     }
 
     // ---------------------------------------------------------------
@@ -437,6 +692,19 @@
       { value: 'park_connector_km', label: 'Park connectors', unit: ' km', fmt: 'float' },
       { value: 'resale_median_price', label: 'Resale flat price', unit: '', fmt: 'price' },
       { value: 'mean_height_m', label: 'Avg building height', unit: ' m', fmt: 'float' },
+      { value: 'hdb_count', label: 'HDB blocks', unit: '', fmt: 'int' },
+      { value: 'building_count', label: 'Total buildings', unit: '', fmt: 'int' },
+      { value: 'max_height_m', label: 'Max building height', unit: ' m', fmt: 'float' },
+      { value: 'resale_transaction_count', label: 'Resale transactions', unit: '', fmt: 'int' },
+      { value: 'avg_hdb_year', label: 'Avg HDB year built', unit: '', fmt: 'int' },
+      { value: 'total_dwelling_units', label: 'Dwelling units', unit: '', fmt: 'int' },
+      { value: 'dwelling_density', label: 'Dwelling density', unit: '/km²', fmt: 'int' },
+      { value: 'ndvi_mean', label: 'Vegetation (NDVI)', unit: '', fmt: 'float' },
+      { value: 'ndbi_mean', label: 'Built-up (NDBI)', unit: '', fmt: 'float' },
+      { value: 'lst_mean_c', label: 'Land Surface Temp', unit: ' °C', fmt: 'float' },
+      { value: 'canopy_cover_pct', label: 'Tree canopy cover', unit: '%', fmt: 'float' },
+      { value: 'ghsl_height_mean', label: 'GHSL building height', unit: ' m', fmt: 'float' },
+      { value: 'dsm_mean', label: 'Surface elevation', unit: ' m', fmt: 'float' },
     ];
 
     const RAMP_COLORS = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];

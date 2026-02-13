@@ -13,6 +13,7 @@ from shapely.geometry import shape, mapping, Point
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 GEO = os.path.join(BASE, "docs", "geo")
+GOV_SG = os.path.join(GEO, "gov-sg")
 DATA = os.path.join(BASE, "data", "data-gov-sg")
 BOUNDARY_PATH = os.path.join(GEO, "queenstown-boundary.geojson")
 
@@ -102,6 +103,8 @@ def main():
     boundary_geom = shape(boundary_gj["features"][0]["geometry"])
     print(f"  Boundary loaded ({boundary_geom.geom_type})")
 
+    os.makedirs(GOV_SG, exist_ok=True)
+
     total_size = 0
 
     print("\nFiltering point layers...")
@@ -111,7 +114,7 @@ def main():
             print(f"  WARNING: {source_name} not found, skipping")
             continue
         features = filter_points(source_path, boundary_geom)
-        out_path = os.path.join(GEO, output_name)
+        out_path = os.path.join(GOV_SG, output_name)
         write_geojson(out_path, features)
         total_size += os.path.getsize(out_path)
 
@@ -122,7 +125,7 @@ def main():
             print(f"  WARNING: {source_name} not found, skipping")
             continue
         features = filter_and_clip_lines(source_path, boundary_geom)
-        out_path = os.path.join(GEO, output_name)
+        out_path = os.path.join(GOV_SG, output_name)
         write_geojson(out_path, features)
         total_size += os.path.getsize(out_path)
 

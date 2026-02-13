@@ -23,7 +23,7 @@
 
   <div class="card">
     <h3><a href="3dtiles/viewer.html">3D Buildings Viewer</a></h3>
-    <p>8,671 extruded buildings with height-based colour coding, 13 toggleable map layers, and a choropleth heatmap for subzone-level metrics. Built with CesiumJS and 3D Tiles.</p>
+    <p>8,671 extruded buildings with height-based colour coding, 22 toggleable map layers (12 categories) with provenance filter (Gov.sg / Global), and a choropleth heatmap with 21 subzone-level metrics including remote sensing indicators (NDVI, LST, canopy cover). Built with CesiumJS and 3D Tiles.</p>
     <div class="details">
       <p><strong>Data sources:</strong> OpenStreetMap building footprints (Overpass API) enriched with HDB property records (data.gov.sg). 308 HDB blocks matched by block number + street name.</p>
       <table>
@@ -35,13 +35,23 @@
       </table>
       <p style="margin-top:8px"><strong>Height range:</strong> 3m &ndash; 183m (mean 14.2m, median 10m). Tallest: mTower (183m), SkyVille @ Dawson (141m, 47 storeys).</p>
       <p><strong>Click any building</strong> to see: name, type, height, storeys, data source, and HDB year completed.</p>
-      <p style="margin-top:8px"><strong>Choropleth heatmap:</strong> Select a metric from the dropdown at the top of the Layers panel to colour subzones by population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, or average building height. Uses a 5-step YlOrRd colour ramp with dynamic legend.</p>
+      <p><strong>HDB blocks layer:</strong> 308 HDB dots coloured by construction era &mdash; red (pre-1980), orange (1980&ndash;1999), green (2000+). Click shows year completed, dwelling units, and use flags.</p>
+      <p><strong>Height control zones:</strong> Semi-transparent URA polygons showing storey limits from the Master Plan.</p>
+      <p><strong>Street network layer:</strong> 3,788 road edges from OSMnx drive network, coloured by betweenness centrality to highlight key corridors.</p>
+      <p><strong>Remote sensing layers:</strong> 4 pixel-level raster overlays (NDVI, LST, NDBI, canopy cover) rendered via CesiumJS <code>SingleTileImageryProvider</code>, plus a clickable 100&thinsp;m grid (2,402 cells) coloured by NDVI with per-cell NDVI, NDBI, LST, and canopy % on click. The original subzone-level remote sensing GeoJSON (15 polygons) remains for choropleth use.</p>
+      <p><strong>Mapillary images layer:</strong> 5,000 sampled street-level image locations from Mapillary/ZenSVI.</p>
+      <p style="margin-top:8px"><strong>Choropleth heatmap:</strong> Select from 21 metrics in the Layers panel dropdown to colour subzones &mdash; including population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density, plus 6 remote sensing indicators: Vegetation (NDVI), Built-up (NDBI), Land Surface Temp, Tree canopy cover, GHSL building height, and Surface elevation. Uses a 5-step YlOrRd colour ramp with dynamic legend.</p>
     </div>
   </div>
 
   <div class="card">
     <h3><a href="data-catalogue.html">Data Catalogue</a></h3>
-    <p>Complete inventory of 60+ datasets from 6 sources (data.gov.sg, URA, OneMap, LTA DataMall, Mapillary, DMP25) with access requirements and spatial join fields.</p>
+    <p>Complete inventory of 60+ datasets from 8 sources (data.gov.sg, URA, OneMap, LTA DataMall, Mapillary, DMP25, OSMnx, Google Earth Engine) with access requirements and spatial join fields.</p>
+  </div>
+
+  <div class="card">
+    <h3><a href="tech-catalogue.html">Tech Catalogue</a></h3>
+    <p>Technologies, libraries, and frameworks: Python geospatial stack (Shapely, OSMnx, GeoPandas, GEE), CesiumJS 3D viewer, 3D Tiles pipeline (py3dtiles, mapbox_earcut), ZenSVI/Mapillary, and GitHub Actions CI/CD.</p>
   </div>
 
   <h2>Data Files</h2>
@@ -49,10 +59,15 @@
     <li><a href="geo/queenstown-subzone-summary.geojson">Subzone Summary</a> (15 subzones with aggregated indicators) &mdash; <a href="geo/queenstown-subzone-summary.csv">CSV</a></li>
     <li><a href="geo/queenstown-boundary.geojson">Queenstown Boundary</a> (1 polygon)</li>
     <li><a href="geo/queenstown-subzones.geojson">Queenstown Subzones</a> (15 polygons)</li>
-    <li><a href="geo/queenstown-buildings.geojson">All Buildings</a> (8,671 features, 7.2 MB)</li>
-    <li><a href="geo/queenstown-buildings-hdb-enriched.geojson">HDB Buildings</a> (308 features)</li>
-    <li><a href="geo/queenstown-buildings-osm-only.geojson">OSM-Only Buildings</a> (8,363 features)</li>
-    <li><a href="geo/queenstown-ura-height-control.geojson">URA Height Control Zones</a> (7 features)</li>
+    <li><a href="geo/global/queenstown-buildings.geojson">All Buildings</a> (8,671 features, 7.2 MB)</li>
+    <li><a href="geo/global/queenstown-buildings-hdb-enriched.geojson">HDB Buildings</a> (308 features)</li>
+    <li><a href="geo/global/queenstown-buildings-osm-only.geojson">OSM-Only Buildings</a> (8,363 features)</li>
+    <li><a href="geo/gov-sg/queenstown-ura-height-control.geojson">URA Height Control Zones</a> (7 features)</li>
+    <li><a href="geo/global/queenstown-street-network.geojson">Street Network</a> (OSMnx drive network with betweenness centrality)</li>
+    <li><a href="geo/global/queenstown-remote-sensing.geojson">Remote Sensing (subzone)</a> (15 subzones with LST, NDVI, NDBI, canopy cover, elevation from GEE)</li>
+    <li><a href="geo/global/queenstown-rs-grid.geojson">Remote Sensing Grid</a> (2,402 clickable 100m cells with per-cell NDVI, NDBI, LST, canopy %)</li>
+    <li>Raster overlays: <a href="geo/global/rasters/queenstown-ndvi.png">NDVI</a>, <a href="geo/global/rasters/queenstown-lst.png">LST</a>, <a href="geo/global/rasters/queenstown-ndbi.png">NDBI</a>, <a href="geo/global/rasters/queenstown-canopy.png">Canopy</a> (1024px GEE satellite imagery)</li>
+    <li><a href="geo/global/queenstown-mapillary-gvi.geojson">Mapillary Images</a> (5,000 sampled street-level image locations)</li>
     <li><a href="https://drive.google.com/file/d/1CEFWx4flMDvdmLRSiMyWuDD1IK75X9jQ/view?usp=sharing">3dtiles(zipped)</a></li>
   </ul>
 </body>

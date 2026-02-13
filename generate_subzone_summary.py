@@ -25,7 +25,9 @@ GEO = os.path.join(BASE, "docs", "geo")
 DATA = os.path.join(BASE, "data", "data-gov-sg")
 
 SUBZONES_PATH = os.path.join(GEO, "queenstown-subzones.geojson")
-BUILDINGS_PATH = os.path.join(GEO, "queenstown-buildings.geojson")
+BUILDINGS_PATH = os.path.join(GEO, "global", "queenstown-buildings.geojson")
+REMOTE_SENSING_PATH = os.path.join(GEO, "global", "queenstown-remote-sensing.geojson")
+MAPILLARY_GVI_PATH = os.path.join(GEO, "global", "queenstown-mapillary-gvi.geojson")
 
 POINT_LAYERS = {
     "hawker_centres": os.path.join(DATA, "hawker-centres.geojson"),
@@ -373,6 +375,37 @@ for sz in subzones:
     sz["max_height_m"] = round(max(heights), 1) if heights else None
     del sz["building_heights"]
 
+# HDB age and dwelling stats per subzone
+for sz in subzones:
+    sz["hdb_years"] = []
+    sz["total_dwelling_units"] = 0
+
+for feat in buildings_gj["features"]:
+    props = feat["properties"]
+    if not props.get("hdb_match"):
+        continue
+    centroid = shape(feat["geometry"]).centroid
+    for sz in subzones:
+        if sz["geom"].contains(centroid):
+            year = props.get("hdb_year_completed")
+            if year is not None:
+                try:
+                    sz["hdb_years"].append(int(year))
+                except (ValueError, TypeError):
+                    pass
+            units = props.get("hdb_total_dwelling_units")
+            if units is not None:
+                try:
+                    sz["total_dwelling_units"] += int(units)
+                except (ValueError, TypeError):
+                    pass
+            break
+
+for sz in subzones:
+    years = sz["hdb_years"]
+    sz["avg_hdb_year"] = round(statistics.mean(years)) if years else None
+    del sz["hdb_years"]
+
 # ---------------------------------------------------------------------------
 # 7. Derived density metrics
 # ---------------------------------------------------------------------------
@@ -390,9 +423,73 @@ for sz in subzones:
     )
     sz["amenity_count"] = amenity_total
     sz["amenity_density"] = round(amenity_total / area, 1) if area > 0 else 0
+    sz["dwelling_density"] = round(sz["total_dwelling_units"] / area) if area > 0 else 0
 
 # ---------------------------------------------------------------------------
-# 8. Assemble output
+# 8. Remote sensing metrics (from fetch_global_layers.py GEE output)
+# ---------------------------------------------------------------------------
+print("Joining remote sensing data...")
+
+RS_FIELDS = [
+    "lst_mean_c", "ndvi_mean", "ndbi_mean", "ghsl_height_mean",
+    "dsm_mean", "dem_mean", "canopy_cover_pct", "canopy_loss_pct",
+]
+
+for sz in subzones:
+    for f in RS_FIELDS:
+        sz[f] = None
+
+if os.path.exists(REMOTE_SENSING_PATH):
+    rs_gj = load_geojson(REMOTE_SENSING_PATH)
+    rs_by_name = {}
+    for feat in rs_gj["features"]:
+        name = feat["properties"].get("subzone_name")
+        if name:
+            rs_by_name[name] = feat["properties"]
+    for sz in subzones:
+        rs = rs_by_name.get(sz["name"], {})
+        for f in RS_FIELDS:
+            val = rs.get(f)
+            if val is not None:
+                sz[f] = val
+    print(f"  Merged remote sensing for {len(rs_by_name)} subzones")
+else:
+    print(f"  WARNING: {REMOTE_SENSING_PATH} not found, skipping")
+
+# ---------------------------------------------------------------------------
+# 8b. Mapillary GVI — mean Green View Index per subzone
+# ---------------------------------------------------------------------------
+print("Joining Mapillary GVI data...")
+
+for sz in subzones:
+    sz["gvi_mean"] = None
+
+if os.path.exists(MAPILLARY_GVI_PATH):
+    gvi_gj = load_geojson(MAPILLARY_GVI_PATH)
+    gvi_by_subzone = {}
+    for feat in gvi_gj["features"]:
+        gvi = feat["properties"].get("gvi")
+        if gvi is None:
+            continue
+        geom = feat["geometry"]
+        if geom is None or geom["type"] != "Point":
+            continue
+        pt = Point(geom["coordinates"][:2])
+        for sz in subzones:
+            if sz["geom"].contains(pt):
+                gvi_by_subzone.setdefault(sz["name"], []).append(gvi)
+                break
+    for sz in subzones:
+        vals = gvi_by_subzone.get(sz["name"], [])
+        if vals:
+            sz["gvi_mean"] = round(statistics.mean(vals), 4)
+    matched = sum(1 for sz in subzones if sz["gvi_mean"] is not None)
+    print(f"  GVI computed for {matched} subzones")
+else:
+    print(f"  WARNING: {MAPILLARY_GVI_PATH} not found, skipping GVI")
+
+# ---------------------------------------------------------------------------
+# 9. Assemble output
 # ---------------------------------------------------------------------------
 print("Writing output files...")
 
@@ -406,7 +503,11 @@ FIELDS = [
     "mrt_exits", "mrt_station_count",
     "cycling_path_km", "park_connector_km",
     "building_count", "hdb_count", "mean_height_m", "max_height_m",
+    "avg_hdb_year", "total_dwelling_units", "dwelling_density",
     "resale_median_price", "resale_transaction_count",
+    "lst_mean_c", "ndvi_mean", "ndbi_mean", "ghsl_height_mean",
+    "dsm_mean", "dem_mean", "canopy_cover_pct", "canopy_loss_pct",
+    "gvi_mean",
 ]
 
 features_out = []
@@ -437,8 +538,20 @@ for sz in subzones:
         "hdb_count": sz["hdb_count"],
         "mean_height_m": sz["mean_height_m"],
         "max_height_m": sz["max_height_m"],
+        "avg_hdb_year": sz["avg_hdb_year"],
+        "total_dwelling_units": sz["total_dwelling_units"],
+        "dwelling_density": sz["dwelling_density"],
         "resale_median_price": sz["resale_median_price"],
         "resale_transaction_count": sz["resale_transaction_count"],
+        "lst_mean_c": sz["lst_mean_c"],
+        "ndvi_mean": sz["ndvi_mean"],
+        "ndbi_mean": sz["ndbi_mean"],
+        "ghsl_height_mean": sz["ghsl_height_mean"],
+        "dsm_mean": sz["dsm_mean"],
+        "dem_mean": sz["dem_mean"],
+        "canopy_cover_pct": sz["canopy_cover_pct"],
+        "canopy_loss_pct": sz["canopy_loss_pct"],
+        "gvi_mean": sz["gvi_mean"],
     }
 
     # GeoJSON feature: reuse original geometry

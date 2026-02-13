@@ -14,8 +14,12 @@ docs/3dtiles/tileset.json
 # PDF papers (keep markdown summaries, skip large PDFs)
 literature/papers/*.pdf
 
+# Temporary Mapillary downloads
+tmp_mapillary/
+
 # Playwright MCP
 .playwright-mcp/
 
 # Claude Code local settings (personal permissions, not shared)
 .claude/settings.local.json
+.env

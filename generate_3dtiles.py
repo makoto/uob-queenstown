@@ -23,7 +23,7 @@ from py3dtiles.tileset.content.batch_table import BatchTable
 from py3dtiles.tileset.content.b3dm_feature_table import B3dmFeatureTable
 
 # ── Config ──────────────────────────────────────────────────────────────────
-GEOJSON_PATH = Path("docs/geo/queenstown-buildings.geojson")
+GEOJSON_PATH = Path("docs/geo/global/queenstown-buildings.geojson")
 OUT_DIR = Path("docs/3dtiles")
 
 # WGS84 → ECEF transformer

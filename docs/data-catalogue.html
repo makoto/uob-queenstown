@@ -24,18 +24,64 @@
     hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
     .join-table th { white-space: nowrap; }
     .gap-item { margin: 4px 0; padding-left: 8px; border-left: 3px solid #ddd; }
+    #toc { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px 20px; margin: 0 0 24px 0; }
+    #toc summary { font-weight: 600; cursor: pointer; color: #2c5f8a; font-size: 15px; }
+    #toc ul { margin: 8px 0 0 0; padding-left: 20px; list-style: none; }
+    #toc ul ul { padding-left: 18px; }
+    #toc li { margin: 3px 0; font-size: 13px; line-height: 1.5; }
+    #toc li::before { content: '–'; color: #aaa; margin-right: 6px; }
+    #toc a { text-decoration: none; }
+    #toc a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="back"><a href="index.html">&larr; Back to Home</a></div>
   <h1>Data Catalogue</h1>
-  <p>All available datasets from 6 data sources relevant to investigating perceived liveability in Singapore's Queenstown district.</p>
+  <p>All available datasets from 8 data sources relevant to investigating perceived liveability in Singapore's Queenstown district.</p>
+
+  <!-- ===== TABLE OF CONTENTS ===== -->
+  <details id="toc" open>
+    <summary>Table of Contents</summary>
+    <ul>
+      <li><a href="#summary">Summary Table: All Datasets by Source</a>
+        <ul>
+          <li><a href="#boundary-layers">Spatial Boundary &amp; Base Layers</a></li>
+          <li><a href="#social-intensity">Social Intensity</a></li>
+          <li><a href="#accessibility">Accessibility</a></li>
+          <li><a href="#active-mobility">Active Mobility</a></li>
+          <li><a href="#microclimate">Microclimate</a></li>
+          <li><a href="#public-facilities">Public Facilities</a></li>
+        </ul>
+      </li>
+      <li><a href="#detailed">Detailed Catalogue by Source</a>
+        <ul>
+          <li><a href="#datagovsg">1. data.gov.sg</a></li>
+          <li><a href="#ura">2. URA Maps / Master Plan</a></li>
+          <li><a href="#onemap">3. OneMap</a></li>
+          <li><a href="#lta">4. LTA DataMall</a></li>
+          <li><a href="#mapillary">5. Mapillary</a></li>
+        </ul>
+      </li>
+      <li><a href="#access">Access Requirements</a></li>
+      <li><a href="#join-fields">Key Spatial Join Fields</a></li>
+      <li><a href="#gaps">Gaps &amp; Limitations</a></li>
+      <li><a href="#processed">Processed Queenstown Layers</a>
+        <ul>
+          <li><a href="#point-layers">Point Layers</a></li>
+          <li><a href="#line-layers">Line Layers</a></li>
+          <li><a href="#subzone-summary">Subzone Summary</a></li>
+          <li><a href="#viewer-layers">Additional Viewer Layers</a></li>
+          <li><a href="#global-layers">Global Layers (OSMnx / GEE / Mapillary)</a></li>
+        </ul>
+      </li>
+    </ul>
+  </details>
 
   <hr>
 
-  <h2>Summary Table: All Datasets by Source</h2>
+  <h2 id="summary">Summary Table: All Datasets by Source</h2>
 
-  <h3>Spatial Boundary &amp; Base Layers</h3>
+  <h3 id="boundary-layers">Spatial Boundary &amp; Base Layers</h3>
   <table>
     <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
     <tr><td>Planning Area Boundary</td><td>URA / data.gov.sg</td><td>GeoJSON</td><td>Filter by PLN_AREA_N</td><td><span class="badge badge-open">Open</span></td></tr>
@@ -47,7 +93,7 @@
     <tr><td>Draft Master Plan 2025</td><td>URA</td><td>PDF / Web</td><td>Queenstown sections</td><td><span class="badge badge-web">View</span></td></tr>
   </table>
 
-  <h3>Social Intensity</h3>
+  <h3 id="social-intensity">Social Intensity</h3>
   <table>
     <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
     <tr><td><a href="https://data.gov.sg/datasets/d_4a086da0a5553be1d89383cd90d07ecd/view">Hawker Centres</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
@@ -59,7 +105,7 @@
     <tr><td><a href="https://data.gov.sg/datasets/d_d95ae740c0f8961a0b10435836660ce0/view">Population Census 2020</a></td><td>data.gov.sg</td><td>CSV</td><td>By planning area</td><td><span class="badge badge-open">Open</span></td></tr>
   </table>
 
-  <h3>Accessibility</h3>
+  <h3 id="accessibility">Accessibility</h3>
   <table>
     <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
     <tr><td>Bus Stops</td><td>LTA DataMall</td><td>Shapefile + API</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span> / <span class="badge badge-api">API</span></td></tr>
@@ -71,7 +117,7 @@
     <tr><td><a href="https://data.gov.sg/datasets/d_b5f239cc954bb7920245a7b8ad95dde8/view">ABC Waters</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
   </table>
 
-  <h3>Active Mobility</h3>
+  <h3 id="active-mobility">Active Mobility</h3>
   <table>
     <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
     <tr><td><a href="https://data.gov.sg/datasets/d_8f468b25193f64be8a16fa7d8f60f553/view">Cycling Path Network</a></td><td>LTA / data.gov.sg</td><td>GeoJSON</td><td>Spatial clip</td><td><span class="badge badge-open">Open</span></td></tr>
@@ -83,7 +129,7 @@
     <tr><td>Mapillary Street-Level Imagery</td><td>Mapillary</td><td>JPEG + JSON</td><td>Variable density</td><td><span class="badge badge-api">API token</span></td></tr>
   </table>
 
-  <h3>Microclimate</h3>
+  <h3 id="microclimate">Microclimate</h3>
   <table>
     <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
     <tr><td><a href="https://data.gov.sg/collections/1459/view">Realtime Weather Readings</a></td><td>data.gov.sg</td><td>JSON API</td><td>Nearest station</td><td><span class="badge badge-open">Open</span></td></tr>
@@ -93,7 +139,7 @@
     <tr><td>Mapillary Image Segmentation (GVI)</td><td>Mapillary</td><td>JSON per-image</td><td>Where images exist</td><td><span class="badge badge-api">API token</span></td></tr>
   </table>
 
-  <h3>Public Facilities</h3>
+  <h3 id="public-facilities">Public Facilities</h3>
   <table>
     <tr><th>Dataset</th><th>Source</th><th>Format</th><th>Queenstown?</th><th>Access</th></tr>
     <tr><td><a href="https://data.gov.sg/dataset/parks">Parks</a></td><td>data.gov.sg</td><td>GeoJSON</td><td>Spatial filter</td><td><span class="badge badge-open">Open</span></td></tr>
@@ -109,9 +155,9 @@
 
   <hr>
 
-  <h2>Detailed Catalogue by Source</h2>
+  <h2 id="detailed">Detailed Catalogue by Source</h2>
 
-  <h3>1. data.gov.sg</h3>
+  <h3 id="datagovsg">1. data.gov.sg</h3>
   <p class="section-note">Singapore's open data portal. All datasets openly downloadable under the Open Data Licence.</p>
   <table>
     <tr><th>#</th><th>Dataset</th><th>Format</th><th>Key Fields / Notes</th></tr>
@@ -131,7 +177,7 @@
     <tr><td>14</td><td><a href="https://data.gov.sg/datasets/d_d95ae740c0f8961a0b10435836660ce0/view">Population Census 2020</a></td><td>CSV</td><td>Age, sex by subzone</td></tr>
   </table>
 
-  <h3>2. URA Maps / Master Plan</h3>
+  <h3 id="ura">2. URA Maps / Master Plan</h3>
   <p class="section-note">URA SPACE interactive map and Master Plan datasets. Downloadable layers via data.gov.sg; APIs require free registration.</p>
   <table>
     <tr><th>#</th><th>Dataset</th><th>Size</th><th>Key Use</th></tr>
@@ -160,7 +206,7 @@
   </table>
   <p class="section-note">Queenstown DMP25 highlights: Queensway Node (community space, 2027), Rail Corridor enhancements, 5,000+ new flats since 2021.</p>
 
-  <h3>3. OneMap</h3>
+  <h3 id="onemap">3. OneMap</h3>
   <p class="section-note">Singapore's national map platform by SLA. All APIs require a free token. Base: <code>https://www.onemap.gov.sg/api</code></p>
   <table>
     <tr><th>#</th><th>API</th><th>Format</th><th>Key Use</th></tr>
@@ -171,7 +217,7 @@
     <tr><td>5</td><td>Search / Geocoding</td><td>JSON</td><td>Address to coordinates</td></tr>
   </table>
 
-  <h3>4. LTA DataMall</h3>
+  <h3 id="lta">4. LTA DataMall</h3>
   <p class="section-note">Land Transport Authority. Static shapefiles openly downloadable; dynamic APIs require a free API key.</p>
   <table>
     <tr><th>Category</th><th>Datasets</th><th>Format</th><th>Access</th></tr>
@@ -183,7 +229,7 @@
     <tr><td>On-Request</td><td>Farecard Transactions, Taxi/PHC Trip Data</td><td>&mdash;</td><td><span class="badge badge-nda">NDA</span></td></tr>
   </table>
 
-  <h3>5. Mapillary</h3>
+  <h3 id="mapillary">5. Mapillary</h3>
   <p class="section-note">Crowdsourced street-level imagery (Meta). Images CC BY-SA 4.0. API: <code>https://graph.mapillary.com</code></p>
   <table>
     <tr><th>#</th><th>Dataset</th><th>Format</th><th>Use</th></tr>
@@ -196,7 +242,7 @@
 
   <hr>
 
-  <h2>Access Requirements</h2>
+  <h2 id="access">Access Requirements</h2>
   <table>
     <tr><th>Level</th><th>Sources</th><th>What You Need</th></tr>
     <tr><td><span class="badge badge-open">Open download</span></td><td>data.gov.sg, LTA static shapefiles</td><td>Nothing &mdash; direct download</td></tr>
@@ -208,7 +254,7 @@
 
   <hr>
 
-  <h2>Key Spatial Join Fields</h2>
+  <h2 id="join-fields">Key Spatial Join Fields</h2>
   <table class="join-table">
     <tr><th>Join Type</th><th>Field</th><th>Datasets Connected</th></tr>
     <tr><td>Planning area name</td><td><code>PLN_AREA_N = "QUEENSTOWN"</code></td><td>Boundaries, census, OneMap population, URA sale sites</td></tr>
@@ -223,7 +269,7 @@
 
   <hr>
 
-  <h2>Gaps &amp; Limitations</h2>
+  <h2 id="gaps">Gaps &amp; Limitations</h2>
   <div class="gap-item"><strong>No noise pollution data</strong> &mdash; would require primary data collection</div>
   <div class="gap-item"><strong>No pedestrian foot traffic counts</strong> &mdash; could estimate via Mapillary or field observation</div>
   <div class="gap-item"><strong>No sentiment/perception data</strong> &mdash; requires primary research (surveys, interviews)</div>
@@ -233,40 +279,75 @@
 
   <hr>
 
-  <h2>Processed Queenstown Layers</h2>
+  <h2 id="processed">Processed Queenstown Layers</h2>
   <p class="section-note">
-    Generated by <code>filter_queenstown_layers.py</code> from island-wide datasets. Spatial filter: points by containment, lines by intersection + clipping to Queenstown boundary. Output: <code>docs/geo/</code> (~373 KB total).
+    Generated by <code>filter_queenstown_layers.py</code> from island-wide datasets. Spatial filter: points by containment, lines by intersection + clipping to Queenstown boundary. Output files are organised by data provenance: government data in <code>docs/geo/gov-sg/</code>, global/OSM data in <code>docs/geo/global/</code>, and summary files in <code>docs/geo/</code> (~373 KB total).
   </p>
 
-  <h3>Point Layers</h3>
+  <h3 id="point-layers">Point Layers <small style="color:#888; font-weight:normal;">(gov-sg/)</small></h3>
   <table>
     <tr><th>Output File</th><th>Source Dataset</th><th>Features</th><th>Category</th></tr>
-    <tr><td><code>queenstown-hawker-centres.geojson</code></td><td>Hawker Centres</td><td>9</td><td>Food &amp; Daily Needs</td></tr>
-    <tr><td><code>queenstown-supermarkets.geojson</code></td><td>Supermarkets</td><td>19</td><td>Food &amp; Daily Needs</td></tr>
-    <tr><td><code>queenstown-mrt-exits.geojson</code></td><td>MRT Station Exits</td><td>26</td><td>Transit</td></tr>
-    <tr><td><code>queenstown-parks.geojson</code></td><td>Parks</td><td>9</td><td>Green &amp; Recreation</td></tr>
-    <tr><td><code>queenstown-park-facilities.geojson</code></td><td>Park Facilities</td><td>370</td><td>Green &amp; Recreation</td></tr>
-    <tr><td><code>queenstown-community-clubs.geojson</code></td><td>Community Clubs</td><td>4</td><td>Community</td></tr>
-    <tr><td><code>queenstown-gyms.geojson</code></td><td>Gyms@SG</td><td>4</td><td>Community</td></tr>
-    <tr><td><code>queenstown-preschools.geojson</code></td><td>Pre-Schools</td><td>81</td><td>Community</td></tr>
-    <tr><td><code>queenstown-chas-clinics.geojson</code></td><td>CHAS Clinics</td><td>43</td><td>Community</td></tr>
+    <tr><td><code>gov-sg/queenstown-hawker-centres.geojson</code></td><td>Hawker Centres</td><td>9</td><td>Food &amp; Daily Needs</td></tr>
+    <tr><td><code>gov-sg/queenstown-supermarkets.geojson</code></td><td>Supermarkets</td><td>19</td><td>Food &amp; Daily Needs</td></tr>
+    <tr><td><code>gov-sg/queenstown-mrt-exits.geojson</code></td><td>MRT Station Exits</td><td>26</td><td>Transit</td></tr>
+    <tr><td><code>gov-sg/queenstown-parks.geojson</code></td><td>Parks</td><td>9</td><td>Green &amp; Recreation</td></tr>
+    <tr><td><code>gov-sg/queenstown-park-facilities.geojson</code></td><td>Park Facilities</td><td>370</td><td>Green &amp; Recreation</td></tr>
+    <tr><td><code>gov-sg/queenstown-community-clubs.geojson</code></td><td>Community Clubs</td><td>4</td><td>Community</td></tr>
+    <tr><td><code>gov-sg/queenstown-gyms.geojson</code></td><td>Gyms@SG</td><td>4</td><td>Community</td></tr>
+    <tr><td><code>gov-sg/queenstown-preschools.geojson</code></td><td>Pre-Schools</td><td>81</td><td>Community</td></tr>
+    <tr><td><code>gov-sg/queenstown-chas-clinics.geojson</code></td><td>CHAS Clinics</td><td>43</td><td>Community</td></tr>
   </table>
 
-  <h3>Line Layers (clipped to boundary)</h3>
+  <h3 id="line-layers">Line Layers (clipped to boundary) <small style="color:#888; font-weight:normal;">(gov-sg/)</small></h3>
   <table>
     <tr><th>Output File</th><th>Source Dataset</th><th>Features</th><th>Category</th></tr>
-    <tr><td><code>queenstown-cycling-paths.geojson</code></td><td>Cycling Path Network</td><td>110</td><td>Active Mobility</td></tr>
-    <tr><td><code>queenstown-park-connectors.geojson</code></td><td>Park Connector Loop</td><td>36</td><td>Green &amp; Recreation</td></tr>
+    <tr><td><code>gov-sg/queenstown-cycling-paths.geojson</code></td><td>Cycling Path Network</td><td>110</td><td>Active Mobility</td></tr>
+    <tr><td><code>gov-sg/queenstown-park-connectors.geojson</code></td><td>Park Connector Loop</td><td>36</td><td>Green &amp; Recreation</td></tr>
   </table>
 
-  <h3>Subzone Summary</h3>
+  <h3 id="subzone-summary">Subzone Summary</h3>
   <p class="section-note">Generated by <code>generate_subzone_summary.py</code>. Spatially joins the above datasets plus population census and resale prices to the 15 Queenstown subzones.</p>
   <table>
     <tr><th>Output File</th><th>Format</th><th>Key Fields</th></tr>
-    <tr><td><code>queenstown-subzone-summary.geojson</code></td><td>GeoJSON</td><td rowspan="2">population_density, amenity_density, amenity_count, mrt_station_count, cycling_path_km, park_connector_km, resale_median_price, building_count, hdb_count, mean_height_m, population_elderly_65plus</td></tr>
+    <tr><td><code>queenstown-subzone-summary.geojson</code></td><td>GeoJSON</td><td rowspan="2">population_density, amenity_density, amenity_count, mrt_station_count, cycling_path_km, park_connector_km, resale_median_price, resale_transaction_count, building_count, hdb_count, mean_height_m, max_height_m, population_elderly_65plus, avg_hdb_year, total_dwelling_units, dwelling_density, lst_mean_c, ndvi_mean, ndbi_mean, ghsl_height_mean, dsm_mean, dem_mean, canopy_cover_pct, canopy_loss_pct, gvi_mean</td></tr>
     <tr><td><code>queenstown-subzone-summary.csv</code></td><td>CSV</td></tr>
   </table>
-  <p class="section-note">Used by the <a href="3dtiles/viewer.html">3D Viewer</a> choropleth heatmap: select a metric from the dropdown to colour all 15 subzones on a YlOrRd ramp. Available metrics: population density, elderly share (65+, derived), amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height.</p>
+  <p class="section-note">Used by the <a href="3dtiles/viewer.html">3D Viewer</a> choropleth heatmap: select a metric from the dropdown to colour all 15 subzones on a YlOrRd ramp. 21 metrics available: population density, elderly share (65+, derived), amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density, plus 6 remote sensing metrics &mdash; Vegetation (NDVI), Built-up (NDBI), Land Surface Temp (&deg;C), Tree canopy cover (%), GHSL building height (m), Surface elevation (m). Derived fields: <code>avg_hdb_year</code> (mean HDB year completed), <code>total_dwelling_units</code> (sum of HDB dwelling units), <code>dwelling_density</code> (dwelling units per km&sup2;). Remote sensing fields merged from <code>queenstown-remote-sensing.geojson</code>: <code>lst_mean_c</code>, <code>ndvi_mean</code>, <code>ndbi_mean</code>, <code>ghsl_height_mean</code>, <code>dsm_mean</code>, <code>dem_mean</code>, <code>canopy_cover_pct</code>, <code>canopy_loss_pct</code>, <code>gvi_mean</code>.</p>
+
+  <h3 id="viewer-layers">Additional Viewer Layers</h3>
+  <p class="section-note">These layers are loaded directly by the <a href="3dtiles/viewer.html">3D Viewer</a> and are not produced by <code>filter_queenstown_layers.py</code>.</p>
+  <table>
+    <tr><th>Output File</th><th>Source Dataset</th><th>Features</th><th>Category</th></tr>
+    <tr><td><code>global/queenstown-buildings.geojson</code></td><td>OSM building footprints (Overpass API)</td><td>8,671</td><td>Buildings</td></tr>
+    <tr><td><code>global/queenstown-buildings-osm-only.geojson</code></td><td>OSM buildings (non-HDB only)</td><td>8,363</td><td>Buildings</td></tr>
+    <tr><td><code>global/queenstown-buildings-hdb-enriched.geojson</code></td><td>OSM buildings + HDB Property Info</td><td>308</td><td>Housing</td></tr>
+    <tr><td><code>gov-sg/queenstown-ura-height-control.geojson</code></td><td>URA Building Height Control</td><td>7</td><td>Planning</td></tr>
+    <tr><td><code>global/queenstown-rs-grid.geojson</code></td><td>GEE 100&thinsp;m grid (NDVI, NDBI, LST, canopy)</td><td>2,402</td><td>Remote Sensing</td></tr>
+    <tr><td><code>global/rasters/queenstown-ndvi.png</code></td><td>GEE satellite raster (Sentinel-2)</td><td>&mdash;</td><td>Remote Sensing</td></tr>
+    <tr><td><code>global/rasters/queenstown-lst.png</code></td><td>GEE satellite raster (Landsat 9)</td><td>&mdash;</td><td>Remote Sensing</td></tr>
+    <tr><td><code>global/rasters/queenstown-ndbi.png</code></td><td>GEE satellite raster (Sentinel-2)</td><td>&mdash;</td><td>Remote Sensing</td></tr>
+    <tr><td><code>global/rasters/queenstown-canopy.png</code></td><td>GEE satellite raster (Hansen)</td><td>&mdash;</td><td>Remote Sensing</td></tr>
+  </table>
+
+  <h3 id="global-layers">Global Layers (OSMnx / GEE / Mapillary) <small style="color:#888; font-weight:normal;">(global/)</small></h3>
+  <p class="section-note">Generated by <code>fetch_global_layers.py</code> from global data sources. Requires <code>zensvi</code> conda environment, GEE authentication, and a Mapillary API key. Run manually (not in CI).</p>
+  <table>
+    <tr><th>Output File</th><th>Source</th><th>Features</th><th>Key Fields / Notes</th></tr>
+    <tr><td><code>global/queenstown-street-network.geojson</code></td><td>OSMnx (OpenStreetMap drive network)</td><td>3,788 edges</td><td>highway, name, length, betweenness (approx. edge betweenness centrality, k=100)</td></tr>
+    <tr><td><code>global/queenstown-remote-sensing.geojson</code></td><td>Google Earth Engine (Landsat 9, Sentinel-2, GHSL, ALOS, SRTM, Hansen)</td><td>15 subzone polygons</td><td>lst_mean_c, ndvi_mean, ndbi_mean, ghsl_height_mean, dsm_mean, dem_mean, canopy_cover_pct, canopy_loss_pct</td></tr>
+    <tr><td><code>global/queenstown-rs-grid.geojson</code></td><td>Google Earth Engine (Landsat 9, Sentinel-2, Hansen)</td><td>2,402 grid cells (100&thinsp;m)</td><td>ndvi, ndbi, lst_c, canopy_pct; pixel-level values aggregated to 100&thinsp;m grid</td></tr>
+    <tr><td><code>global/queenstown-mapillary-gvi.geojson</code></td><td>Mapillary / ZenSVI (street-level imagery metadata)</td><td>5,000 points</td><td>image_id, is_pano; sampled from 2020&ndash;2025 imagery within Queenstown boundary</td></tr>
+  </table>
+
+  <h4>Raster Image Overlays <small style="color:#888; font-weight:normal;">(global/rasters/)</small></h4>
+  <p class="section-note">Georeferenced satellite imagery from Google Earth Engine, exported as 1024px PNGs. Rendered in the <a href="3dtiles/viewer.html">3D Viewer</a> via CesiumJS <code>SingleTileImageryProvider</code>.</p>
+  <table>
+    <tr><th>File</th><th>Source</th><th>Description</th></tr>
+    <tr><td><code>global/rasters/queenstown-ndvi.png</code></td><td>GEE (Sentinel-2)</td><td>Normalised Difference Vegetation Index</td></tr>
+    <tr><td><code>global/rasters/queenstown-lst.png</code></td><td>GEE (Landsat 9)</td><td>Land Surface Temperature</td></tr>
+    <tr><td><code>global/rasters/queenstown-ndbi.png</code></td><td>GEE (Sentinel-2)</td><td>Normalised Difference Built-up Index</td></tr>
+    <tr><td><code>global/rasters/queenstown-canopy.png</code></td><td>GEE (Hansen)</td><td>Tree canopy cover percentage</td></tr>
+  </table>
 
 </body>
 </html>

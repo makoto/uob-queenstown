@@ -39,30 +39,59 @@ Two dimensions to investigate:
 
 ### Data Pipeline
 
-Island-wide GeoJSON datasets live in `data/data-gov-sg/` (gitignored, ~11.5 MB). Three Python scripts process them into committed outputs under `docs/`:
+Island-wide GeoJSON datasets live in `data/data-gov-sg/` (gitignored, ~11.5 MB). Four Python scripts process them into committed outputs under `docs/`:
 
 | Script | Input | Output | Run in CI |
 |---|---|---|---|
-| `generate_subzone_summary.py` | Subzones + point/line/CSV datasets | `docs/geo/queenstown-subzone-summary.geojson` + `.csv` | Yes |
-| `filter_queenstown_layers.py` | Boundary + 11 island-wide GeoJSONs | 11 `docs/geo/queenstown-*.geojson` files (~373 KB) | Yes |
+| `generate_subzone_summary.py` | Subzones + point/line/CSV + remote sensing | `docs/geo/queenstown-subzone-summary.geojson` + `.csv` | Yes |
+| `filter_queenstown_layers.py` | Boundary + 11 island-wide GeoJSONs | 11 `docs/geo/gov-sg/queenstown-*.geojson` files (~373 KB) | Yes |
 | `generate_3dtiles.py` | Buildings GeoJSON | `docs/3dtiles/tileset.json` + B3DM | Yes |
+| `fetch_global_layers.py` | OSMnx, GEE, Mapillary APIs | 3 `docs/geo/global/queenstown-*.geojson` files | Manual (requires conda env + API keys) |
 
-All three run in `.github/workflows/deploy.yml` on push to `main`.
+The first three run in `.github/workflows/deploy.yml` on push to `main`. `fetch_global_layers.py` is run manually with the `zensvi` conda environment and requires GEE authentication + a Mapillary API key.
 
 ### Processed Layers in `docs/geo/`
 
-Point layers (filtered by boundary containment):
+Files are organised into subdirectories by data provenance:
+
+- **`docs/geo/`** (root) — boundary, subzones, subzone-summary GeoJSON + CSV
+- **`docs/geo/gov-sg/`** — 12 layers from Singapore government open data (data.gov.sg / URA)
+- **`docs/geo/global/`** — 7 layers from globally available sources (OSM buildings, street network, remote sensing, Mapillary)
+- **`docs/geo/global/rasters/`** — 4 satellite raster PNGs from GEE (NDVI, LST, NDBI, canopy; 1024px each)
+
+`gov-sg/` point layers (filtered by boundary containment):
 - `queenstown-hawker-centres.geojson` (9), `queenstown-parks.geojson` (9), `queenstown-mrt-exits.geojson` (26), `queenstown-supermarkets.geojson` (19), `queenstown-gyms.geojson` (4), `queenstown-community-clubs.geojson` (4), `queenstown-preschools.geojson` (81), `queenstown-chas-clinics.geojson` (43), `queenstown-park-facilities.geojson` (370)
 
-Line layers (clipped to boundary):
+`gov-sg/` line layers (clipped to boundary):
 - `queenstown-cycling-paths.geojson` (110), `queenstown-park-connectors.geojson` (36)
+
+`gov-sg/` polygon layers:
+- `queenstown-ura-height-control.geojson` (7)
+
+`global/` layers:
+- `queenstown-buildings.geojson` (8,671), `queenstown-buildings-osm-only.geojson` (8,363), `queenstown-buildings-hdb-enriched.geojson` (308)
+- `queenstown-street-network.geojson` (3,788 edges with betweenness centrality from OSMnx drive network)
+- `queenstown-remote-sensing.geojson` (15 subzone polygons with LST, NDVI, NDBI, GHSL height, DSM, DEM, canopy cover from GEE)
+- `queenstown-rs-grid.geojson` (2,402 clickable 100m grid cells with per-cell NDVI, NDBI, LST, canopy % from GEE)
+- `rasters/queenstown-ndvi.png`, `queenstown-lst.png`, `queenstown-ndbi.png`, `queenstown-canopy.png` (1024px georeferenced satellite imagery from GEE)
+- `queenstown-mapillary-gvi.geojson` (5,000 sampled Mapillary image point locations)
+
+### Tech Catalogue (`docs/tech-catalogue.html`)
+
+Documents all technologies, libraries, and frameworks used in the project: Python geospatial stack (Shapely, GeoPandas, OSMnx, NetworkX, GEE, ZenSVI, py3dtiles, pyproj, mapbox_earcut, NumPy), frontend (CesiumJS, CARTO basemaps), APIs (GEE, Mapillary, Overpass, Cesium ion), data formats (GeoJSON, CSV, 3D Tiles, PNG), CI/CD (GitHub Actions, GitHub Pages), script reference, and environment setup.
 
 ### 3D Viewer (`docs/3dtiles/viewer.html`)
 
 CesiumJS-based viewer with:
 - 3D building tileset (height-colored)
 - Boundary + subzone overlays (on by default)
-- **Layer panel** (top-right): 13 toggleable overlays grouped by category (Food & Daily Needs, Transit, Green & Recreation, Active Mobility, Community)
+- **Layer panel** (top-right): 22 toggleable overlays grouped by 12 categories (Boundaries, Food & Daily Needs, Transit, Green & Recreation, Active Mobility, Community, Housing, Planning, Street Network, Remote Sensing, Street-Level)
+- **Provenance filter bar**: two toggle buttons (Gov.sg / Global) that filter layer checkboxes by data source. Each layer row shows a source badge (SG or globe icon).
 - Layers are lazy-loaded on first checkbox toggle via `GeoJsonDataSource`
+- **HDB blocks** (Housing group): 308 dots coloured by construction era (red pre-1980, orange 1980-1999, green 2000+). Click shows year completed, dwelling units, and use flags.
+- **Height control zones** (Planning group): semi-transparent polygons with storey-limit labels from `HT_CTL_TXT`.
+- **Street network** (Street Network group): 3,788 road edges coloured by betweenness centrality (OSMnx drive network).
+- **Remote sensing** (Remote Sensing group): 4 raster image overlays (NDVI, LST, NDBI, canopy) via `SingleTileImageryProvider`, plus a clickable 100m grid (2,402 cells) coloured by NDVI with 6-step green ramp. The old subzone-level remote sensing GeoJSON remains for choropleth use.
+- **Mapillary images** (Street-Level group): 5,000 sampled street-level image point locations.
 - Basemap toggle (dark/light CARTO)
-- **Choropleth heatmap**: dropdown at the top of the layer panel to visualise subzone-level metrics as a colour overlay (YlOrRd 5-step ramp, alpha 0.55). Available metrics: population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height. Data sourced from `queenstown-subzone-summary.geojson`, lazy-loaded and cached. Legend updates with formatted min/max per metric.
+- **Choropleth heatmap**: dropdown (22 options incl. Off) to colour subzones by one of 21 metrics (YlOrRd 5-step ramp, alpha 0.55). Original 15 metrics: population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density. Plus 6 remote sensing metrics: Vegetation (NDVI), Built-up (NDBI), Land Surface Temp, Tree canopy cover, GHSL building height, Surface elevation. Data sourced from `queenstown-subzone-summary.geojson`, lazy-loaded and cached. Legend updates with formatted min/max per metric.

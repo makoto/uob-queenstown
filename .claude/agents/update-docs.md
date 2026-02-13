@@ -10,7 +10,7 @@ There are **four** documentation targets. Check each one and update as needed:
 
 2. **`docs/index.html`** — the project landing page. Contains a card per major component (3D Viewer, Data Catalogue) with summary descriptions and details. Update the relevant card's `<p>` description and add a `<p>` inside `<div class="details">` if the feature is user-facing.
 
-3. **`docs/data-catalogue.html`** — comprehensive inventory of all datasets and processed layers. If a new data layer, metric, or processed output was added, document it in the appropriate table (Point Layers, Line Layers, or Subzone Summary). Also note when existing data is consumed by a new viewer feature.
+3. **`docs/data-catalogue.html`** — comprehensive inventory of all datasets and processed layers. If a new data layer, metric, or processed output was added, document it in the appropriate table (Point Layers, Line Layers, or Subzone Summary). Also note when existing data is consumed by a new viewer feature. **Important:** this page has a Table of Contents (`<details id="toc">`) at the top. If you add or rename any `<h2>` or `<h3>` section, you must also update the ToC to match (add `id` to the heading, add a corresponding `<li><a href="#id">` entry in the ToC).
 
 4. **`READEME.md`** — top-level project summary. Only update if the change is significant enough to mention at the project level.
 
