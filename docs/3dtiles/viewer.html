@@ -75,7 +75,7 @@
   <div id="info">
     <h3 id="info-title">Queenstown 3D Buildings</h3>
     <div id="info-subtitle">8,671 buildings | 30 layers | 30 metrics | Click for details</div>
-    <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light</button>
+    <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light &#9654;</button>
     <div class="legend">
       <div style="color:#999; margin-bottom:2px;">Building height</div>
       <div class="legend-item"><span class="legend-swatch" style="background:red"></span> &gt; 100 m</div>
@@ -105,8 +105,19 @@
       url: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
       credit: cartoCredit, minimumLevel: 0, maximumLevel: 19,
     });
+    const openTopoCredit = new Cesium.Credit('&copy; <a href="https://opentopomap.org/">OpenTopoMap</a> (CC-BY-SA), &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>');
+    const openTopo = new Cesium.UrlTemplateImageryProvider({
+      url: 'https://a.tile.opentopomap.org/{z}/{x}/{y}.png',
+      credit: openTopoCredit, minimumLevel: 0, maximumLevel: 17,
+    });
 
-    let isDark = true;
+    const BASEMAPS = [
+      { label: '&#9790; Dark', provider: cartoDark },
+      { label: '&#9788; Light', provider: cartoLight },
+      { label: '&#127760; Satellite', provider: null },  // Cesium Ion async
+      { label: '&#9968; Terrain', provider: openTopo },
+    ];
+    let basemapIndex = 0;
     const viewer = new Cesium.Viewer('cesiumContainer', {
       terrain: Cesium.Terrain.fromWorldTerrain(),
       baseLayer: new Cesium.ImageryLayer(cartoDark),
@@ -367,9 +378,10 @@
       // 11. Rebuild layer panel checkboxes
       rebuildLayerPanel();
 
-      // Mark boundary/subzones as on by default
+      // Mark boundary/subzones/buildings as on by default
       layerState['boundary'] = { dataSource: null, loaded: true, visible: true };
       layerState['subzones'] = { dataSource: null, loaded: true, visible: true };
+      layerState['buildings'] = { dataSource: null, loaded: true, visible: true };
     }
 
     function rebuildLayerPanel() {
@@ -491,9 +503,10 @@
     // Layer definitions: { id, label, file, color, type, group, onByDefault, source }
     // file paths use 'queenstown' as template; layerFile() swaps at load time
     const LAYERS = [
-      // Boundaries (loaded separately above, managed via entity show/hide)
-      { id: 'boundary', label: 'District boundary', color: '#ff00ff', group: 'Boundaries', onByDefault: true, builtin: true },
-      { id: 'subzones', label: 'Subzones', color: '#00ffff', group: 'Boundaries', onByDefault: true, builtin: true },
+      // District (loaded separately above, managed via entity/tileset show/hide)
+      { id: 'boundary', label: 'District boundary', color: '#ff00ff', group: 'District', onByDefault: true, builtin: true },
+      { id: 'subzones', label: 'Subzones', color: '#00ffff', group: 'District', onByDefault: true, builtin: true },
+      { id: 'buildings', label: '3D Buildings', color: '#ffffff', group: 'District', onByDefault: true, builtin: true },
       // Food & Daily Needs
       { id: 'hawker', label: 'Hawker centres', file: '../geo/gov-sg/queenstown-hawker-centres.geojson', color: '#ff6b35', group: 'Food & Daily Needs', type: 'point', source: 'gov-sg' },
       { id: 'supermarket', label: 'Supermarkets', file: '../geo/gov-sg/queenstown-supermarkets.geojson', color: '#4ecdc4', group: 'Food & Daily Needs', type: 'point', source: 'gov-sg' },
@@ -646,7 +659,7 @@
 
       groups.forEach(groupName => {
         const layers = groupMap[groupName];
-        const isExpanded = groupName === 'Boundaries';
+        const isExpanded = groupName === 'District';
 
         // Calculate group total (only counted layers)
         let groupTotal = 0;
@@ -850,9 +863,13 @@
       layerState[id].visible = visible;
       const layer = LAYERS.find(l => l.id === id);
 
-      // Built-in layers (boundary / subzones) — toggle entity visibility
+      // Built-in layers (boundary / subzones / buildings) — toggle visibility
       if (layer.builtin) {
-        builtinEntities[id].forEach(e => { e.show = visible; });
+        if (id === 'buildings') {
+          if (tilesetRef) tilesetRef.show = visible;
+        } else {
+          builtinEntities[id].forEach(e => { e.show = visible; });
+        }
         updateLayerLegend();
         return;
       }
@@ -1363,14 +1380,30 @@
     flyToDistrict();
     buildLayerPanel();
 
-    // Basemap toggle
-    function toggleBasemap() {
+    // Basemap toggle — cycles through Dark, Light, Satellite, Terrain
+    let satelliteProvider = null;
+    async function toggleBasemap() {
+      basemapIndex = (basemapIndex + 1) % BASEMAPS.length;
       const layers = viewer.imageryLayers;
       layers.remove(layers.get(0));
-      isDark = !isDark;
-      layers.addImageryProvider(isDark ? cartoDark : cartoLight, 0);
+      const bm = BASEMAPS[basemapIndex];
+      if (basemapIndex === 2 && !satelliteProvider) {
+        // Lazy-init Cesium Ion satellite imagery
+        try {
+          satelliteProvider = await Cesium.IonImageryProvider.fromAssetId(2);
+          BASEMAPS[2].provider = satelliteProvider;
+        } catch (e) {
+          console.warn('Satellite imagery not available:', e);
+          // Fall through to next basemap
+          basemapIndex = (basemapIndex + 1) % BASEMAPS.length;
+        }
+      }
+      const provider = BASEMAPS[basemapIndex].provider;
+      if (provider) layers.addImageryProvider(provider, 0);
+      // Show label of the NEXT basemap on the button
+      const nextIndex = (basemapIndex + 1) % BASEMAPS.length;
       const btn = document.getElementById('basemap-toggle');
-      btn.innerHTML = isDark ? '&#9788; Light' : '&#9790; Dark';
+      btn.innerHTML = BASEMAPS[nextIndex].label + ' &#9654;';
     }
   </script>
 </body>
