@@ -10,3 +10,4 @@ Geospatial analysis of perceived liveability across five Singapore planning dist
 - [3D Buildings Viewer](https://makoto.github.io/uob-sg-guide/3dtiles/viewer.html)
 - [Data Catalogue](https://makoto.github.io/uob-sg-guide/data-catalogue.html)
 - [Tech Catalogue](https://makoto.github.io/uob-sg-guide/tech-catalogue.html)
+- [Glossary & Data Dictionary](https://makoto.github.io/uob-sg-guide/glossary.html)

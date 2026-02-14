@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Glossary - Singapore District Liveability Study</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
+    h1 { border-bottom: 2px solid #2c5f8a; padding-bottom: 8px; }
+    h2 { color: #2c5f8a; margin-top: 32px; }
+    a { color: #2c5f8a; }
+    .back { font-size: 14px; margin-bottom: 16px; }
+    table { font-size: 13px; border-collapse: collapse; width: 100%; margin: 12px 0 20px 0; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+    th { color: #666; font-weight: 600; background: #f8f9fa; border-bottom: 2px solid #ddd; position: sticky; top: 0; }
+    td { color: #555; }
+    tr:hover td { background: #f5f8fb; }
+    .term { font-weight: 600; color: #333; white-space: nowrap; }
+    .abbr { font-family: monospace; font-size: 12px; color: #2c5f8a; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+    code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+    #toc { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px 20px; margin: 0 0 24px 0; }
+    #toc summary { font-weight: 600; cursor: pointer; color: #2c5f8a; font-size: 15px; }
+    #toc ul { margin: 8px 0 0 0; padding-left: 20px; list-style: none; }
+    #toc li { margin: 3px 0; font-size: 13px; line-height: 1.5; }
+    #toc li::before { content: '–'; color: #aaa; margin-right: 6px; }
+    #toc a { text-decoration: none; }
+    #toc a:hover { text-decoration: underline; }
+    .formula { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px 12px; font-family: monospace; font-size: 12px; margin: 4px 0; display: inline-block; }
+  </style>
+</head>
+<body>
+  <div class="back"><a href="index.html">&larr; Back to Home</a></div>
+  <h1>Glossary &amp; Data Dictionary</h1>
+  <p>Definitions of acronyms, technical terms, and metrics used in the Singapore District Liveability Study.</p>
+
+  <details id="toc" open>
+    <summary>Table of Contents</summary>
+    <ul>
+      <li><a href="#remote-sensing">Remote Sensing &amp; Terrain</a></li>
+      <li><a href="#walkability">Walkability &amp; Network Analysis</a></li>
+      <li><a href="#geospatial">Geospatial &amp; Data Formats</a></li>
+      <li><a href="#singapore">Singapore-Specific Terms</a></li>
+      <li><a href="#statistics">Statistics &amp; Visualisation</a></li>
+    </ul>
+  </details>
+
+  <hr>
+
+  <!-- ===== REMOTE SENSING & TERRAIN ===== -->
+  <h2 id="remote-sensing">Remote Sensing &amp; Terrain</h2>
+  <table>
+    <tr><th style="width:160px">Term</th><th>Definition</th></tr>
+    <tr>
+      <td><span class="term">DEM</span></td>
+      <td><strong>Digital Elevation Model.</strong> A raster grid of bare-earth surface elevations (ground level, with buildings and trees removed). This project uses <strong>SRTM</strong> DEM at 30 m resolution. Values are in metres above sea level. Queenstown range: ~4&ndash;73 m.</td>
+    </tr>
+    <tr>
+      <td><span class="term">DSM</span></td>
+      <td><strong>Digital Surface Model.</strong> Like DEM but includes the tops of buildings, trees, and other objects above ground. The difference (DSM &minus; DEM) approximates building/canopy height.</td>
+    </tr>
+    <tr>
+      <td><span class="term">SRTM</span></td>
+      <td><strong>Shuttle Radar Topography Mission.</strong> A NASA mission (2000) that produced near-global elevation data at 30 m resolution. Used in this project via Google Earth Engine (<code>USGS/SRTMGL1_003</code>) for DEM and slope computation.</td>
+    </tr>
+    <tr>
+      <td><span class="term">NDVI</span></td>
+      <td><strong>Normalised Difference Vegetation Index.</strong> Measures vegetation greenness from satellite imagery. Calculated as (NIR &minus; Red) / (NIR + Red). Values range from &minus;1 to +1; higher values indicate denser vegetation. Derived from Sentinel-2 imagery via GEE.</td>
+    </tr>
+    <tr>
+      <td><span class="term">NDBI</span></td>
+      <td><strong>Normalised Difference Built-up Index.</strong> Measures built-up (impervious) surface intensity. Calculated as (SWIR &minus; NIR) / (SWIR + NIR). Higher values indicate more built-up area; lower/negative values indicate vegetation or water.</td>
+    </tr>
+    <tr>
+      <td><span class="term">LST</span></td>
+      <td><strong>Land Surface Temperature.</strong> The radiative temperature of the ground surface as measured by thermal satellite sensors. This project uses Landsat 8/9 thermal band data processed via GEE, reported in &deg;C. Useful for identifying urban heat islands.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Canopy Cover</span></td>
+      <td>Percentage of land area covered by tree canopy. Derived from the Global Forest Canopy Height dataset or similar GEE sources. Expressed as 0&ndash;100%.</td>
+    </tr>
+    <tr>
+      <td><span class="term">GHSL</span></td>
+      <td><strong>Global Human Settlement Layer.</strong> An EU Joint Research Centre dataset providing global building height, built-up area, and population estimates from satellite imagery. Used in this project for subzone-level average building height.</td>
+    </tr>
+    <tr>
+      <td><span class="term">GEE</span></td>
+      <td><strong>Google Earth Engine.</strong> A cloud platform for planetary-scale geospatial analysis. Used in this project to compute NDVI, NDBI, LST, canopy cover, DEM, slope, and GHSL metrics from satellite imagery.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Slope</span></td>
+      <td>Terrain steepness computed from the DEM, expressed in degrees (0&deg; = flat, 90&deg; = vertical). Calculated using <code>ee.Terrain.slope()</code> in GEE. Queenstown range: 0&ndash;39&deg;. Used in the slope-penalised walkability analysis.</td>
+    </tr>
+    <tr>
+      <td><span class="term">RS Grid</span></td>
+      <td><strong>Remote Sensing Grid.</strong> A 100 m &times; 100 m grid covering each district, with per-cell values for NDVI, NDBI, LST, canopy %, DEM, and slope. Viewable in the map viewer with 5 colour modes.</td>
+    </tr>
+    <tr>
+      <td><span class="term">NIR / SWIR</span></td>
+      <td><strong>Near-Infrared / Short-Wave Infrared.</strong> Spectral bands captured by satellite sensors. NIR reflects strongly off vegetation; SWIR reflects off built-up surfaces. Used to compute NDVI and NDBI.</td>
+    </tr>
+  </table>
+
+  <!-- ===== WALKABILITY & NETWORK ANALYSIS ===== -->
+  <h2 id="walkability">Walkability &amp; Network Analysis</h2>
+  <table>
+    <tr><th style="width:160px">Term</th><th>Definition</th></tr>
+    <tr>
+      <td><span class="term">BEH-NWI</span></td>
+      <td><strong>Built Environment &amp; Health &ndash; Neighbourhood Walkability Index.</strong> A composite walkability score based on z-score standardisation of 4 components: population density, intersection density, transit access, and destination accessibility. Used by this project to rank subzones. Methodology adapted from Frank et al. (2010).</td>
+    </tr>
+    <tr>
+      <td><span class="term">Intersection Density</span></td>
+      <td>Number of street intersections (walk-network nodes with degree &ge; 3) per unit area. Higher density indicates a more connected, walkable street grid. Computed via spatial kernel method: counts qualifying nodes within a 300 m radius, divided by circle area.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Transit Access</span></td>
+      <td>Proximity to public transit stops (MRT exits). Measured as the network distance from each grid cell to the nearest MRT exit using Dijkstra&rsquo;s shortest path algorithm on the walk network. Lower distance = better access.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Destination Accessibility</span></td>
+      <td>Proximity to daily-needs destinations (hawker centres, supermarkets, parks, clinics). Computed as average network distance to the nearest destination across multiple categories.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Tobler&rsquo;s Hiking Function</span></td>
+      <td>An empirical model that predicts walking speed based on terrain slope. Used to penalise steep gradients in walkability analysis.
+        <div class="formula">speed (km/h) = 6 &times; exp(&minus;3.5 &times; |slope + 0.05|)</div>
+        Flat ground &asymp; 5 km/h; 10% uphill &asymp; 3.6 km/h; optimal 5% downhill &asymp; 6 km/h. Slope = rise/run (positive = uphill).</td>
+    </tr>
+    <tr>
+      <td><span class="term">Slope-Adjusted Walkability</span></td>
+      <td>Walkability metrics recalculated using Tobler&rsquo;s hiking function. Instead of flat network distance, edges are weighted by estimated walking <em>time</em> based on gradient. Hilly areas (e.g., Kent Ridge) score lower; flat areas remain similar.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Betweenness Centrality</span></td>
+      <td>A network metric measuring how often a road segment lies on the shortest path between all pairs of nodes. High-centrality edges are key corridors that channel traffic flow. Computed via OSMnx on the drive network.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Dijkstra&rsquo;s Algorithm</span></td>
+      <td>A graph algorithm for finding shortest (or least-cost) paths from a set of source nodes to all reachable nodes. Used in walkability analysis with edge weights of either distance (flat) or Tobler travel time (slope-adjusted).</td>
+    </tr>
+    <tr>
+      <td><span class="term">Walk Network</span></td>
+      <td>A pedestrian network graph from OpenStreetMap, including footpaths, park paths, and pedestrian bridges &mdash; distinct from the drive network used for street centrality. Downloaded via OSMnx.</td>
+    </tr>
+    <tr>
+      <td><span class="term">UNA</span></td>
+      <td><strong>Urban Network Analysis.</strong> Gravity-based accessibility model from MIT City Form Lab (<em>madina</em> library). Measures how accessible each building is to nearby destinations (food, transit, green, health, education) weighted by distance decay. Parameters: search_radius = 1500 m, beta = 0.003.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Gravity Accessibility</span></td>
+      <td>An accessibility measure where destinations are weighted inversely by distance (exponential decay). Closer destinations contribute more. Computed per building via the UNA/madina framework.</td>
+    </tr>
+  </table>
+
+  <!-- ===== GEOSPATIAL & DATA FORMATS ===== -->
+  <h2 id="geospatial">Geospatial &amp; Data Formats</h2>
+  <table>
+    <tr><th style="width:160px">Term</th><th>Definition</th></tr>
+    <tr>
+      <td><span class="term">GeoJSON</span></td>
+      <td>An open standard format for encoding geographic data structures (points, lines, polygons) using JSON. The primary data format used in this project for all vector layers.</td>
+    </tr>
+    <tr>
+      <td><span class="term">3D Tiles / B3DM</span></td>
+      <td><strong>3D Tiles</strong> is an OGC standard for streaming 3D geospatial content. <strong>B3DM</strong> (Batched 3D Model) is a tile format within 3D Tiles for batched building models. Used to render extruded 3D buildings in the CesiumJS viewer.</td>
+    </tr>
+    <tr>
+      <td><span class="term">CesiumJS</span></td>
+      <td>An open-source JavaScript library for 3D globes and maps. Powers the project&rsquo;s interactive viewer with 3D building models, raster overlays, and vector layers.</td>
+    </tr>
+    <tr>
+      <td><span class="term">OSM / OSMnx</span></td>
+      <td><strong>OpenStreetMap</strong> &mdash; a collaborative open map database. <strong>OSMnx</strong> is a Python library for downloading and analysing street networks and building footprints from OSM. Used for buildings, walk/drive networks, and intersection density.</td>
+    </tr>
+    <tr>
+      <td><span class="term">ECEF</span></td>
+      <td><strong>Earth-Centred, Earth-Fixed.</strong> A 3D Cartesian coordinate system with origin at the Earth&rsquo;s centre. Used internally by the 3D Tiles pipeline to position buildings on the globe.</td>
+    </tr>
+    <tr>
+      <td><span class="term">WGS84</span></td>
+      <td><strong>World Geodetic System 1984.</strong> The standard coordinate reference system for GPS and web mapping (latitude/longitude). All GeoJSON files in this project use WGS84 (EPSG:4326).</td>
+    </tr>
+    <tr>
+      <td><span class="term">EPSG:4326 / EPSG:4978</span></td>
+      <td>Coordinate reference system codes. <strong>EPSG:4326</strong> = WGS84 geographic (lon/lat). <strong>EPSG:4978</strong> = WGS84 geocentric (ECEF xyz). The 3D Tiles pipeline transforms from 4326 to 4978.</td>
+    </tr>
+    <tr>
+      <td><span class="term">POI</span></td>
+      <td><strong>Point of Interest.</strong> A specific location of interest such as a hawker centre, MRT exit, park, clinic, or school. POIs are the destination inputs for walkability and UNA accessibility analyses.</td>
+    </tr>
+    <tr>
+      <td><span class="term">GVI</span></td>
+      <td><strong>Green View Index.</strong> A measure of visible greenery from street-level imagery (e.g., Mapillary). Calculated as the proportion of green pixels in a panoramic image. Higher GVI indicates more perceived greenery.</td>
+    </tr>
+  </table>
+
+  <!-- ===== SINGAPORE-SPECIFIC ===== -->
+  <h2 id="singapore">Singapore-Specific Terms</h2>
+  <table>
+    <tr><th style="width:160px">Term</th><th>Definition</th></tr>
+    <tr>
+      <td><span class="term">HDB</span></td>
+      <td><strong>Housing &amp; Development Board.</strong> Singapore&rsquo;s public housing authority. HDB flats house ~80% of the resident population. In this project, HDB property data (year completed, dwelling units, block number) is joined to OSM building footprints.</td>
+    </tr>
+    <tr>
+      <td><span class="term">URA</span></td>
+      <td><strong>Urban Redevelopment Authority.</strong> Singapore&rsquo;s national land-use planning agency. Provides the Master Plan subzone boundaries and height control data used in this project.</td>
+    </tr>
+    <tr>
+      <td><span class="term">MRT</span></td>
+      <td><strong>Mass Rapid Transit.</strong> Singapore&rsquo;s metro rail system. MRT exit locations are used as transit access points in walkability analysis.</td>
+    </tr>
+    <tr>
+      <td><span class="term">CHAS</span></td>
+      <td><strong>Community Health Assist Scheme.</strong> A government subsidy programme for medical/dental care at participating clinics. CHAS clinic locations are used as health-access destinations in UNA analysis.</td>
+    </tr>
+    <tr>
+      <td><span class="term">NParks</span></td>
+      <td><strong>National Parks Board.</strong> Manages Singapore&rsquo;s parks, nature reserves, and greenery. NParks data includes park boundaries, nature reserves, park connectors, walking tracks, and park facilities.</td>
+    </tr>
+    <tr>
+      <td><span class="term">ABC Waters</span></td>
+      <td><strong>Active, Beautiful, Clean Waters.</strong> A PUB (Public Utilities Board) programme that transforms waterways and reservoirs into vibrant community spaces. ABC Waters polygons show programme areas in each district.</td>
+    </tr>
+    <tr>
+      <td><span class="term">LTA</span></td>
+      <td><strong>Land Transport Authority.</strong> Manages Singapore&rsquo;s land transport infrastructure. Provides cycling path and public transport data via LTA DataMall.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Subzone</span></td>
+      <td>The smallest administrative unit in Singapore&rsquo;s planning hierarchy (Region &gt; Planning Area &gt; Subzone). Defined by URA in the Master Plan. Queenstown has 15 subzones (e.g., Tanglin Halt, Ghim Moh, Margaret Drive).</td>
+    </tr>
+    <tr>
+      <td><span class="term">Planning Area / District</span></td>
+      <td>Mid-level administrative unit in Singapore&rsquo;s planning hierarchy. This project studies 5 planning areas: Queenstown, Bishan, Outram, Tampines, Newton.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Hawker Centre</span></td>
+      <td>A government-managed open-air food court offering affordable cooked food. A key component of Singapore&rsquo;s food accessibility and social infrastructure.</td>
+    </tr>
+  </table>
+
+  <!-- ===== STATISTICS & VISUALISATION ===== -->
+  <h2 id="statistics">Statistics &amp; Visualisation</h2>
+  <table>
+    <tr><th style="width:160px">Term</th><th>Definition</th></tr>
+    <tr>
+      <td><span class="term">Z-Score</span></td>
+      <td>A statistical measure indicating how many standard deviations a value is from the mean. Used in the BEH-NWI walkability index to standardise components before summing. Formula: z = (x &minus; mean) / std.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Choropleth</span></td>
+      <td>A thematic map where geographic areas (subzones) are shaded in proportion to a data variable. The viewer uses a 5-step YlOrRd (yellow-orange-red) colour ramp for 33 choropleth metrics.</td>
+    </tr>
+    <tr>
+      <td><span class="term">Colour Ramp</span></td>
+      <td>A gradient of colours used to represent data values on a map. The RS grid uses 6-step ramps (e.g., green for NDVI, blue-to-red for DEM, yellow-to-green for slope). The choropleth uses a 5-step YlOrRd ramp.</td>
+    </tr>
+    <tr>
+      <td><span class="term">CNT / RATE / IDX / SAT</span></td>
+      <td>Metric type badges used in the choropleth panel. <strong>CNT</strong> = count (raw totals). <strong>RATE</strong> = rate or density (normalised by area or population). <strong>IDX</strong> = index or score (composite/derived). <strong>SAT</strong> = satellite-derived (remote sensing).</td>
+    </tr>
+    <tr>
+      <td><span class="term">Feature Count</span></td>
+      <td>The number of geographic features (points, lines, or polygons) in a dataset. Shown in parentheses next to each layer name in the viewer, e.g., &ldquo;Hawker centres (9)&rdquo;.</td>
+    </tr>
+  </table>
+
+  <hr>
+  <p style="font-size: 12px; color: #999; text-align: center;">Singapore District Liveability Study &mdash; Glossary &amp; Data Dictionary</p>
+</body>
+</html>

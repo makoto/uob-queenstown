@@ -27,7 +27,7 @@
 
   <div class="card">
     <h3><a href="3dtiles/viewer.html">3D Buildings Viewer</a></h3>
-    <p>Multi-district viewer with district selector (Queenstown, Bishan, Outram, Tampines, Newton). Extruded 3D buildings for all 5 districts (Queenstown: 8,671; Bishan: 3,766; Outram: 1,589; Tampines: 2,910; Newton: 759) with height-based colour coding, 27 toggleable overlays in 10 collapsible groups with feature counts per layer, provenance filter (Gov.sg / Global), and a categorized choropleth accordion with 30 subzone-level metrics across 5 sub-categories (with type badges: CNT/RATE/IDX/SAT). All gov-sg layers available for all districts. Street network, remote sensing (subzone-level + RS grid + raster PNGs), and walkability available for all 5 districts. Built with CesiumJS and 3D Tiles.</p>
+    <p>Multi-district viewer with district selector (Queenstown, Bishan, Outram, Tampines, Newton). Extruded 3D buildings for all 5 districts (Queenstown: 8,671; Bishan: 3,766; Outram: 1,589; Tampines: 2,910; Newton: 759) with height-based colour coding, 27 toggleable overlays in 10 collapsible groups with feature counts per layer, provenance filter (Gov.sg / Global), and a categorized choropleth accordion with 33 subzone-level metrics across 5 sub-categories (with type badges: CNT/RATE/IDX/SAT). All gov-sg layers available for all districts. Street network, remote sensing (subzone-level + RS grid + raster PNGs), and walkability available for all 5 districts. Built with CesiumJS and 3D Tiles.</p>
     <div class="details">
       <p><strong>District selector:</strong> Switch between Queenstown, Bishan, Outram, Tampines, and Newton. Each district loads its own boundary, subzones, gov-sg layers, 3D building tileset, and choropleth data. Buildings, street network, remote sensing (subzone-level + RS grid + raster PNGs), and walkability (scores + grids) are available for all 5 districts. Missing data is handled gracefully.</p>
       <p><strong>Data sources:</strong> OpenStreetMap building footprints (Overpass API) enriched with HDB property records (data.gov.sg). 308 HDB blocks matched by block number + street name.</p>
@@ -44,10 +44,10 @@
       <p><strong>Height control zones:</strong> Semi-transparent URA polygons showing storey limits from the Master Plan.</p>
       <p><strong>Street network layer:</strong> Road edges from OSMnx drive network, coloured by betweenness centrality to highlight key corridors, with dynamic legend. Available for all 5 districts (Queenstown: 3,788; Bishan: 1,363; Outram: 711; Tampines: 4,144; Newton: 838 edges).</p>
       <p><strong>Intersection density grid:</strong> 100m grid cells coloured by intersection density, computed via spatial kernel method (counts walk-network nodes with degree&ge;3 within a 300m radius, divided by circle area). Available for all 5 districts (Queenstown: 2,178; Bishan: 769; Outram: 135; Tampines: 2,085; Newton: 210 cells). Click a cell to see the intersection density value and method description.</p>
-      <p><strong>Remote sensing layers:</strong> Subzone-level remote sensing data available for all 5 districts (used by choropleth). Pixel-level raster overlays (NDVI, LST, NDBI, canopy cover) and 100m RS grid now available for all 5 districts (Queenstown: 2,394 cells; Bishan: 840; Outram: 175; Tampines: 2,230; Newton: 265).</p>
+      <p><strong>Remote sensing layers:</strong> Subzone-level remote sensing data available for all 5 districts (used by choropleth). Pixel-level raster overlays (NDVI, LST, NDBI, canopy cover) and 100m RS grid now available for all 5 districts (Queenstown: 2,394 cells; Bishan: 840; Outram: 175; Tampines: 2,230; Newton: 265). Each RS grid cell includes 6 properties: NDVI, NDBI, LST, canopy %, DEM elevation (SRTM 30m), and slope. The RS grid features a <strong>colour mode selector</strong> with 5 toggleable modes (NDVI, DEM, Slope, LST, NDBI) displayed as small toggle buttons below the checkbox. Clicking a mode re-colours all grid cells using a 6-step dynamic colour ramp with min/max values from the data. The legend updates with a gradient bar showing the current field name and value range. Default mode is NDVI.</p>
       <!-- Mapillary images layer removed from viewer -->
 
-      <p style="margin-top:8px"><strong>Choropleth heatmap:</strong> A collapsible accordion in the Layers panel organizes 30 metrics into 5 sub-categories (Demographics &amp; Housing, Amenities &amp; Infrastructure, Buildings, Remote Sensing, Walkability). Each metric has a coloured type badge (CNT/RATE/IDX/SAT). Click a metric to colour subzones; use the &ldquo;Off&rdquo; button to deactivate. Metrics include population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density, plus 5 green/blue infrastructure metrics: green space coverage (%), green space area (km&sup2;), ABC Waters area (km&sup2;), NParks tracks (km), and sport facilities, plus 6 remote sensing indicators: Vegetation (NDVI), Built-up (NDBI), Land Surface Temp, Tree canopy cover, GHSL building height, and Surface elevation, plus 4 walkability metrics: Intersection density, Transit access, Destination access, and Walkability (BEH-NWI). Uses a 5-step YlOrRd colour ramp with dynamic legend.</p>
+      <p style="margin-top:8px"><strong>Choropleth heatmap:</strong> A collapsible accordion in the Layers panel organizes 33 metrics into 5 sub-categories (Demographics &amp; Housing, Amenities &amp; Infrastructure, Buildings, Remote Sensing, Walkability). Each metric has a coloured type badge (CNT/RATE/IDX/SAT). Click a metric to colour subzones; use the &ldquo;Off&rdquo; button to deactivate. Metrics include population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density, plus 5 green/blue infrastructure metrics: green space coverage (%), green space area (km&sup2;), ABC Waters area (km&sup2;), NParks tracks (km), and sport facilities, plus 6 remote sensing indicators: Vegetation (NDVI), Built-up (NDBI), Land Surface Temp, Tree canopy cover, GHSL building height, and Surface elevation, plus 7 walkability metrics: Intersection density, Transit access, Destination access, Walkability (BEH-NWI), Walkability (slope-adjusted), Transit access (slope), and Destination access (slope). The 3 slope-adjusted metrics use Tobler&rsquo;s hiking function with SRTM elevation to penalise steep gradients. Uses a 5-step YlOrRd colour ramp with dynamic legend.</p>
     </div>
   </div>
 
@@ -59,6 +59,11 @@
   <div class="card">
     <h3><a href="tech-catalogue.html">Tech Catalogue</a></h3>
     <p>Technologies, libraries, and frameworks: Python geospatial stack (Shapely, OSMnx, GeoPandas, GEE), CesiumJS 3D viewer, 3D Tiles pipeline (py3dtiles, mapbox_earcut), and GitHub Actions CI/CD.</p>
+  </div>
+
+  <div class="card">
+    <h3><a href="glossary.html">Glossary &amp; Data Dictionary</a></h3>
+    <p>Definitions of acronyms and technical terms: DEM, NDVI, LST, BEH-NWI, Tobler&rsquo;s hiking function, HDB, URA, MRT, choropleth, z-score, and more.</p>
   </div>
 
   <h2>Data Files</h2>
@@ -74,7 +79,7 @@
   </ul>
 
   <h3>Buildings (All Districts)</h3>
-  <p style="font-size:13px; color:#666;">OSM building footprints enriched with HDB property data, generated by <code>fetch_global_layers.py --district {name} buildings</code>.</p>
+  <p style="font-size:13px; color:#666;">OSM building footprints enriched with HDB property data, generated by <code>src/fetch_global_layers.py --district {name} buildings</code>.</p>
   <ul>
     <li><strong>Queenstown:</strong> <a href="geo/global/queenstown-buildings.geojson">All</a> (8,671) | <a href="geo/global/queenstown-buildings-hdb-enriched.geojson">HDB</a> (308) | <a href="geo/global/queenstown-buildings-osm-only.geojson">OSM-Only</a> (8,363)</li>
     <li><strong>Bishan:</strong> <a href="geo/global/bishan-buildings.geojson">All</a> (3,766) | <a href="geo/global/bishan-buildings-hdb-enriched.geojson">HDB</a> (1) | <a href="geo/global/bishan-buildings-osm-only.geojson">OSM-Only</a> (3,765)</li>
@@ -84,7 +89,7 @@
   </ul>
 
   <h3>Street Network (All Districts)</h3>
-  <p style="font-size:13px; color:#666;">OSMnx drive network with betweenness centrality, generated by <code>fetch_global_layers.py --district {name} osmnx</code>.</p>
+  <p style="font-size:13px; color:#666;">OSMnx drive network with betweenness centrality, generated by <code>src/fetch_global_layers.py --district {name} osmnx</code>.</p>
   <ul>
     <li><strong>Queenstown:</strong> <a href="geo/global/queenstown-street-network.geojson">Street Network</a> (3,788 edges)</li>
     <li><strong>Bishan:</strong> <a href="geo/global/bishan-street-network.geojson">Street Network</a> (1,363 edges)</li>
@@ -94,7 +99,7 @@
   </ul>
 
   <h3>Remote Sensing &mdash; Subzone Level (All Districts)</h3>
-  <p style="font-size:13px; color:#666;">GEE subzone-level aggregates (LST, NDVI, NDBI, canopy cover, elevation), generated by <code>fetch_global_layers.py --district {name} gee</code>.</p>
+  <p style="font-size:13px; color:#666;">GEE subzone-level aggregates (LST, NDVI, NDBI, canopy cover, elevation), generated by <code>src/fetch_global_layers.py --district {name} gee</code>.</p>
   <ul>
     <li><strong>Queenstown:</strong> <a href="geo/global/queenstown-remote-sensing.geojson">Remote Sensing</a> (15 subzones)</li>
     <li><strong>Bishan:</strong> <a href="geo/global/bishan-remote-sensing.geojson">Remote Sensing</a> (3 subzones)</li>
@@ -104,7 +109,7 @@
   </ul>
 
   <h3>Walkability (All Districts)</h3>
-  <p style="font-size:13px; color:#666;">BEH-NWI walkability scores and 100m grid cells, generated by <code>generate_walkability.py --district {name}</code>.</p>
+  <p style="font-size:13px; color:#666;">BEH-NWI walkability scores (flat + slope-penalised via Tobler&rsquo;s hiking function with SRTM elevation) and 100m grid cells, generated by <code>src/generate_walkability.py --district {name}</code>.</p>
   <ul>
     <li><strong>Queenstown:</strong> <a href="geo/global/queenstown-walkability.json">Scores</a> (15 subzones) | <a href="geo/global/queenstown-walkability-grid.geojson">Grid</a> (2,178 cells)</li>
     <li><strong>Bishan:</strong> <a href="geo/global/bishan-walkability.json">Scores</a> (3 subzones) | <a href="geo/global/bishan-walkability-grid.geojson">Grid</a> (769 cells)</li>
@@ -124,7 +129,7 @@
   -->
 
   <h3>Remote Sensing &mdash; Grid + Rasters (All Districts)</h3>
-  <p style="font-size:13px; color:#666;">100m RS grid cells and raster PNG overlays from GEE, generated by <code>fetch_global_layers.py --district {name} rs_grid</code> and <code>raster_pngs</code>.</p>
+  <p style="font-size:13px; color:#666;">100m RS grid cells (6 properties: NDVI, NDBI, LST, canopy %, DEM elevation, slope) and raster PNG overlays from GEE, generated by <code>src/fetch_global_layers.py --district {name} rs_grid</code> and <code>raster_pngs</code>. DEM from USGS/SRTMGL1_003 (SRTM 30m); slope computed via ee.Terrain.slope().</p>
   <ul>
     <li><strong>Queenstown:</strong> <a href="geo/global/queenstown-rs-grid.geojson">RS Grid</a> (2,394 cells, 680 KB) | Rasters: <a href="geo/global/rasters/queenstown-ndvi.png">NDVI</a>, <a href="geo/global/rasters/queenstown-lst.png">LST</a>, <a href="geo/global/rasters/queenstown-ndbi.png">NDBI</a>, <a href="geo/global/rasters/queenstown-canopy.png">Canopy</a> (2.2 MB)</li>
     <li><strong>Bishan:</strong> <a href="geo/global/bishan-rs-grid.geojson">RS Grid</a> (840 cells, 235 KB) | Rasters: <a href="geo/global/rasters/bishan-ndvi.png">NDVI</a>, <a href="geo/global/rasters/bishan-lst.png">LST</a>, <a href="geo/global/rasters/bishan-ndbi.png">NDBI</a>, <a href="geo/global/rasters/bishan-canopy.png">Canopy</a> (650 KB)</li>

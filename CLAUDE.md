@@ -13,7 +13,7 @@ This is an academic research project investigating **perceived liveability in Si
 ## Study Focus
 
 - **Study area:** Queenstown (primary), with multi-district support for Bishan, Outram, Tampines, Newton
-- **Spatial boundary:** Defined from the URA Master Plan via `extract_district.py`
+- **Spatial boundary:** Defined from the URA Master Plan via `src/extract_district.py`
 - **Supported districts:** Queenstown (15 subzones), Bishan (3), Outram (4), Tampines (5), Newton (6)
 
 ## Research Framework
@@ -39,18 +39,22 @@ Two dimensions to investigate:
 
 ### Data Pipeline
 
-Island-wide GeoJSON datasets live in `data/data-gov-sg/` (gitignored, ~11.5 MB). Six Python scripts process them into committed outputs under `docs/`. All scripts that accept `--district` default to `queenstown`.
+Island-wide GeoJSON datasets live in `data/data-gov-sg/` (gitignored, ~11.5 MB). Six Python scripts in the `src/` directory process them into committed outputs under `docs/`. All scripts that accept `--district` default to `queenstown`.
 
 | Script | Input | Output | Run in CI |
 |---|---|---|---|
-| `extract_district.py` | URA master plan subzones GeoJSON | `docs/geo/{district}-boundary.geojson` + `{district}-subzones.geojson` | Yes |
-| `generate_subzone_summary.py` | Subzones + point/line/CSV + remote sensing + walkability | `docs/geo/{district}-subzone-summary.geojson` + `.csv` | Yes |
-| `filter_district_layers.py` | Boundary + 16 island-wide GeoJSONs | 16 `docs/geo/gov-sg/{district}-*.geojson` files | Yes |
-| `generate_3dtiles.py` | Buildings GeoJSON | `docs/3dtiles/{district}/tileset.json` + B3DM | Yes |
-| `fetch_global_layers.py` | OSMnx, GEE, Mapillary APIs | `docs/geo/global/{district}-*.geojson` files | Manual (requires conda env + API keys). Default tasks: `buildings osmnx gee mapillary`. Additional tasks: `raster_pngs` (GEE raster PNG overlays), `rs_grid` (100m RS grid cells) |
-| `generate_walkability.py` | OSMnx walk network + subzones | `docs/geo/global/{district}-walkability.json` + `{district}-walkability-grid.geojson` | Manual (requires conda env) |
+| `src/extract_district.py` | URA master plan subzones GeoJSON | `docs/geo/{district}-boundary.geojson` + `{district}-subzones.geojson` | Yes |
+| `src/generate_subzone_summary.py` | Subzones + point/line/CSV + remote sensing + walkability | `docs/geo/{district}-subzone-summary.geojson` + `.csv` | Yes |
+| `src/filter_district_layers.py` | Boundary + 16 island-wide GeoJSONs | 16 `docs/geo/gov-sg/{district}-*.geojson` files | Yes |
+| `src/generate_3dtiles.py` | Buildings GeoJSON | `docs/3dtiles/{district}/tileset.json` + B3DM | Yes |
+| `src/fetch_global_layers.py` | OSMnx, GEE, Mapillary APIs | `docs/geo/global/{district}-*.geojson` files | Manual (requires conda env + API keys). Default tasks: `buildings osmnx gee mapillary`. Additional tasks: `raster_pngs` (GEE raster PNG overlays), `rs_grid` (100m RS grid cells) |
+| `src/generate_walkability.py` | OSMnx walk network + subzones + GEE SRTM elevation | `docs/geo/global/{district}-walkability.json` + `{district}-walkability-grid.geojson` | Manual (requires conda env + GEE auth) |
 
-The CI workflow (`.github/workflows/deploy.yml`) loops over all 5 districts for the first four scripts. `fetch_global_layers.py` and `generate_walkability.py` are run manually with the `zensvi` conda environment (osmnx, networkx, shapely). `fetch_global_layers.py` additionally requires GEE authentication + a Mapillary API key. `fetch_global_layers.py` has 4 default tasks: `buildings` (OSM footprints + HDB enrichment), `osmnx` (street network), `gee` (remote sensing), `mapillary` (street-level imagery). Two additional tasks: `raster_pngs` (GEE raster PNG overlays) and `rs_grid` (100m RS grid cells). Buildings, street network, remote sensing (subzone-level + RS grid + raster PNGs), and walkability data now exist for all 5 districts. Mapillary data exists for Queenstown, Bishan, and Outram (not yet Tampines/Newton). Note: the Mapillary layer has been removed from the viewer but the data files and script task remain.
+The CI workflow (`.github/workflows/deploy.yml`) loops over all 5 districts for the first four scripts (calling `python src/scriptname.py`). `src/fetch_global_layers.py` and `src/generate_walkability.py` are run manually with the `zensvi` conda environment (osmnx, networkx, shapely). `src/fetch_global_layers.py` additionally requires GEE authentication + a Mapillary API key. `src/fetch_global_layers.py` has 4 default tasks: `buildings` (OSM footprints + HDB enrichment), `osmnx` (street network), `gee` (remote sensing), `mapillary` (street-level imagery). Two additional tasks: `raster_pngs` (GEE raster PNG overlays) and `rs_grid` (100m RS grid cells). Buildings, street network, remote sensing (subzone-level + RS grid + raster PNGs), and walkability data now exist for all 5 districts. Mapillary data exists for Queenstown, Bishan, and Outram (not yet Tampines/Newton). Note: the Mapillary layer has been removed from the viewer but the data files and script task remain.
+
+### Private Directory
+
+The `private/` directory (gitignored) contains literature review files and site visit reports that are not published to GitHub Pages.
 
 ### Processed Layers in `docs/geo/`
 
@@ -83,19 +87,23 @@ Files are organised into subdirectories by data provenance. All filenames use `{
 - `{district}-remote-sensing.geojson` — subzone polygons with LST, NDVI, NDBI, GHSL height, DSM, DEM, canopy cover from GEE: queenstown (15), bishan (3), outram (4), tampines (5), newton (6)
 
 `global/` remote sensing — grid + rasters (all 5 districts):
-- `{district}-rs-grid.geojson` — clickable 100m grid cells with per-cell NDVI, NDBI, LST, canopy % from GEE: queenstown (2,394), bishan (840), outram (175), tampines (2,230), newton (265)
+- `{district}-rs-grid.geojson` — clickable 100m grid cells with per-cell NDVI, NDBI, LST, canopy %, DEM elevation, slope from GEE: queenstown (2,394), bishan (840), outram (175), tampines (2,230), newton (265). 6 properties: ndvi, ndbi, lst_c, canopy_pct, dem_m (SRTM 30m), slope_deg (terrain slope).
 - `rasters/{district}-ndvi.png`, `{district}-lst.png`, `{district}-ndbi.png`, `{district}-canopy.png` (1024px georeferenced satellite imagery from GEE, all 5 districts)
 
 `global/` Mapillary (Queenstown, Bishan, Outram — data files exist but layer removed from viewer):
 - `{district}-mapillary-gvi.geojson` — sampled street-level image point locations: queenstown (5,000), bishan (5,000), outram (5,000). Not yet available for Tampines or Newton.
 
 `global/` walkability (all 5 districts):
-- `{district}-walkability.json` — subzone-level BEH-NWI walkability scores (intersection_density, transit_access_score, destination_accessibility, walkability_index): queenstown (15), bishan (3), outram (4), tampines (5), newton (6)
-- `{district}-walkability-grid.geojson` — clickable 100m grid cells with per-cell pop_density, transit_access, dest_access, int_density, walkability: queenstown (2,178), bishan (769), outram (135), tampines (2,085), newton (210)
+- `{district}-walkability.json` — subzone-level BEH-NWI walkability scores (intersection_density, transit_access_score, destination_accessibility, walkability_index, transit_access_slope, dest_access_slope, walkability_slope): queenstown (15), bishan (3), outram (4), tampines (5), newton (6). Slope-penalised variants use Tobler's hiking function with SRTM elevation.
+- `{district}-walkability-grid.geojson` — clickable 100m grid cells with per-cell pop_density, transit_access, dest_access, int_density, walkability, transit_slope, dest_slope, slope_walkability: queenstown (2,178), bishan (769), outram (135), tampines (2,085), newton (210). Walk network edges include elevation_start, gradient, tobler_time.
 
 ### Tech Catalogue (`docs/tech-catalogue.html`)
 
 Documents all technologies, libraries, and frameworks used in the project: Python geospatial stack (Shapely, GeoPandas, OSMnx, NetworkX, GEE, ZenSVI, py3dtiles, pyproj, mapbox_earcut, NumPy), frontend (CesiumJS, CARTO basemaps, OpenTopoMap, Bing Maps satellite via Cesium Ion), APIs (GEE, Mapillary, Overpass, Cesium ion), data formats (GeoJSON, CSV, 3D Tiles, PNG), CI/CD (GitHub Actions, GitHub Pages), script reference, and environment setup.
+
+### Glossary & Data Dictionary (`docs/glossary.html`)
+
+Definitions of acronyms and technical terms used across the project, organised in 5 sections: Remote Sensing & Terrain (DEM, DSM, SRTM, NDVI, NDBI, LST, canopy, GHSL, GEE, slope, RS grid, NIR/SWIR), Walkability & Network Analysis (BEH-NWI, intersection density, transit access, destination accessibility, Tobler's hiking function, slope-adjusted walkability, betweenness centrality, Dijkstra, walk network, UNA, gravity accessibility), Geospatial & Data Formats (GeoJSON, 3D Tiles/B3DM, CesiumJS, OSM/OSMnx, ECEF, WGS84, EPSG codes, POI, GVI), Singapore-Specific Terms (HDB, URA, MRT, CHAS, NParks, ABC Waters, LTA, subzone, planning area, hawker centre), and Statistics & Visualisation (z-score, choropleth, colour ramp, CNT/RATE/IDX/SAT badges, feature count).
 
 ### 3D Viewer (`docs/3dtiles/viewer.html`)
 
@@ -115,7 +123,7 @@ CesiumJS-based viewer with multi-district support:
 - **Sport facilities** (Community group): sport facility point locations. Available for all 5 districts (queenstown: 1; bishan: 2; outram: 1; tampines: 1; newton: 0).
 - **Height control zones** (Planning group): semi-transparent polygons with storey-limit labels from `HT_CTL_TXT`.
 - **Street network** (Street Network group): road edges coloured by betweenness centrality (OSMnx drive network) with dynamic legend. Available for all 5 districts (queenstown: 3,788; bishan: 1,363; outram: 711; tampines: 4,144; newton: 838). Plus an Intersection density grid layer using 100m cells: coloured by intersection density computed via spatial kernel method (counts walk-network nodes with degree>=3 within a 300m radius, divided by circle area). Uses a blue colour ramp with dynamic legend; clicking a grid cell shows the intersection density value and method description. Available for all 5 districts.
-- **Remote sensing** (Remote Sensing group): 4 raster image overlays (NDVI, LST, NDBI, canopy) via `SingleTileImageryProvider`, plus a clickable 100m RS grid coloured by NDVI with 6-step green ramp and dynamic legend. Both raster PNGs and RS grid are available for all 5 districts. Subzone-level remote sensing GeoJSON also available for all 5 districts for choropleth use.
+- **Remote sensing** (Remote Sensing group): 4 raster image overlays (NDVI, LST, NDBI, canopy) via `SingleTileImageryProvider`, plus a clickable 100m RS grid with a **colour mode selector** offering 5 toggleable modes (NDVI, DEM, Slope, LST, NDBI). Small toggle buttons appear below the RS grid checkbox in the layer panel. Clicking a mode re-colours all grid cells using a 6-step dynamic colour ramp with min/max values computed from the data. The legend updates to show a gradient bar with the current field name and value range. Default mode is NDVI. RS grid cells include 6 properties: NDVI, NDBI, LST, canopy %, DEM elevation (SRTM 30m), and slope. Both raster PNGs and RS grid are available for all 5 districts. Subzone-level remote sensing GeoJSON also available for all 5 districts for choropleth use.
 - Basemap toggle cycling through 4 options: Dark (CARTO dark_all, default), Light (CARTO light_all), Satellite (Bing Maps via Cesium Ion asset 2, lazy-loaded), Terrain (OpenTopoMap)
-- **Choropleth heatmap**: collapsible "Choropleth" accordion section containing 5 sub-categories: Demographics & Housing, Amenities & Infrastructure, Buildings, Remote Sensing, and Walkability. Each metric row shows a coloured type badge (CNT = count, RATE = rate/density, IDX = index/score, SAT = satellite-derived). Click a metric to activate it; an "Off" button at the top deactivates the choropleth. Internally, `CHOROPLETH_CATEGORIES` array (metrics derived via `flatMap`). 30 metrics total across the 5 sub-categories (YlOrRd 5-step ramp, alpha 0.55). Original 15 metrics: population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density. Plus 5 green/blue infrastructure metrics in Amenities & Infrastructure: Green space coverage (%), Green space area (km2), ABC Waters area (km2), NParks tracks (km), Sport facilities. Plus 6 remote sensing metrics: Vegetation (NDVI), Built-up (NDBI), Land Surface Temp, Tree canopy cover, GHSL building height, Surface elevation. Plus 4 walkability metrics: Intersection density, Transit access, Destination access, Walkability (BEH-NWI). Data sourced from `{district}-subzone-summary.geojson` (per-district), lazy-loaded and cached. Legend updates with formatted min/max per metric.
+- **Choropleth heatmap**: collapsible "Choropleth" accordion section containing 5 sub-categories: Demographics & Housing, Amenities & Infrastructure, Buildings, Remote Sensing, and Walkability. Each metric row shows a coloured type badge (CNT = count, RATE = rate/density, IDX = index/score, SAT = satellite-derived). Click a metric to activate it; an "Off" button at the top deactivates the choropleth. Internally, `CHOROPLETH_CATEGORIES` array (metrics derived via `flatMap`). 33 metrics total across the 5 sub-categories (YlOrRd 5-step ramp, alpha 0.55). Original 15 metrics: population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density. Plus 5 green/blue infrastructure metrics in Amenities & Infrastructure: Green space coverage (%), Green space area (km2), ABC Waters area (km2), NParks tracks (km), Sport facilities. Plus 6 remote sensing metrics: Vegetation (NDVI), Built-up (NDBI), Land Surface Temp, Tree canopy cover, GHSL building height, Surface elevation. Plus 7 walkability metrics: Intersection density, Transit access, Destination access, Walkability (BEH-NWI), Walkability (slope-adjusted), Transit access (slope), Destination access (slope). The 3 slope-adjusted metrics use Tobler's hiking function with SRTM elevation to penalise steep gradients. Data sourced from `{district}-subzone-summary.geojson` (per-district), lazy-loaded and cached. Legend updates with formatted min/max per metric.
 - **Disabled Cesium widgets**: `navigationHelpButton`, `sceneModePicker`, and `fullscreenButton` are disabled to reduce UI clutter.

@@ -51,6 +51,10 @@
     .type-badge.rate { background: rgba(76,175,80,0.3); color: #81c784; }
     .type-badge.idx { background: rgba(33,150,243,0.3); color: #64b5f6; }
     .type-badge.sat { background: rgba(156,39,176,0.3); color: #ce93d8; }
+    .rs-grid-mode { display: flex; gap: 3px; padding: 2px 12px 4px 30px; flex-wrap: wrap; }
+    .rs-grid-mode-btn { padding: 2px 6px; font-size: 9px; border: 1px solid rgba(255,255,255,0.25); border-radius: 2px; background: rgba(255,255,255,0.08); color: #aaa; cursor: pointer; user-select: none; }
+    .rs-grid-mode-btn.active { background: rgba(255,255,255,0.2); color: #fff; border-color: rgba(255,255,255,0.5); }
+    .rs-grid-mode-btn:hover { background: rgba(255,255,255,0.15); }
     .catalogue-link { display: block; padding: 8px 12px; border-top: 1px solid rgba(255,255,255,0.1); color: #4fc3f7; text-decoration: none; font-size: 11px; text-align: center; }
     .catalogue-link:hover { background: rgba(255,255,255,0.06); color: #81d4fa; }
     .district-select { width: calc(100% - 24px); padding: 5px 6px; background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.35); border-radius: 3px; font-family: sans-serif; font-size: 12px; font-weight: bold; margin: 6px 12px 2px; box-sizing: border-box; cursor: pointer; }
@@ -74,7 +78,7 @@
   <div id="cesiumContainer"></div>
   <div id="info">
     <h3 id="info-title">Queenstown 3D Buildings</h3>
-    <div id="info-subtitle">8,671 buildings | 27 layers | 30 metrics | Click for details</div>
+    <div id="info-subtitle">8,671 buildings | 27 layers | 33 metrics | Click for details</div>
     <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light &#9654;</button>
     <div class="legend">
       <div style="color:#999; margin-bottom:2px;">Building height</div>
@@ -308,15 +312,15 @@
               position: Cesium.Cartesian3.fromDegrees(cLng, cLat),
               label: {
                 text: name,
-                font: '11px sans-serif',
-                fillColor: Cesium.Color.WHITE,
+                font: 'bold 13px sans-serif',
+                fillColor: Cesium.Color.CYAN,
                 outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 2,
+                outlineWidth: 3,
                 style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                 verticalOrigin: Cesium.VerticalOrigin.CENTER,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                 disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                scaleByDistance: new Cesium.NearFarScalar(500, 1.0, 5000, 0.4),
+                scaleByDistance: new Cesium.NearFarScalar(300, 1.0, 8000, 0.35),
               }
             });
             builtinEntities.subzones.push(labelEntity);
@@ -363,7 +367,7 @@
 
       // 7. Update info panel
       document.getElementById('info-title').textContent = dist.label + ' 3D Buildings';
-      document.getElementById('info-subtitle').textContent = 'Loading... | 27 layers | 30 metrics | Click for details';
+      document.getElementById('info-subtitle').textContent = 'Loading... | 27 layers | 33 metrics | Click for details';
 
       // 8. Reload boundary + subzones
       loadBoundary();
@@ -447,6 +451,8 @@
           html += `NDBI: ${gv('ndbi')}<br>`;
           html += `LST: ${gv('lst_c')} °C<br>`;
           html += `Canopy: ${gv('canopy_pct')}%<br>`;
+          if (gv('dem_m') !== null) html += `Elevation: ${gv('dem_m')} m<br>`;
+          if (gv('slope_deg') !== null) html += `Slope: ${gv('slope_deg')}°<br>`;
         } else if (gv('ndvi_mean') !== null) {
           // Remote sensing subzone
           const name = gv('subzone_name') || '(subzone)';
@@ -458,10 +464,16 @@
           html += `GHSL height: ${gv('ghsl_height_mean')} m<br>`;
           html += `DSM: ${gv('dsm_mean')} m | DEM: ${gv('dem_mean')} m<br>`;
         } else if (gv('int_density') !== null && gv('cell_id') !== null && gv('pop_density') !== null) {
-          // Intersection density grid cell
+          // Walkability grid cell
           html = `<b>Grid cell #${gv('cell_id')}</b> (100m)<br>`;
           html += `Intersection density: ${gv('int_density')}/km²<br>`;
-          html += `<span style="font-size:0.85em;color:#aaa">Walk-network nodes with degree≥3 within 300m radius</span><br>`;
+          html += `Transit access: ${gv('transit_access')}<br>`;
+          html += `Dest access: ${gv('dest_access')}<br>`;
+          html += `Walkability: ${gv('walkability')}<br>`;
+          if (gv('transit_slope') !== null) html += `Transit (slope): ${gv('transit_slope')}<br>`;
+          if (gv('dest_slope') !== null) html += `Dest (slope): ${gv('dest_slope')}<br>`;
+          if (gv('slope_walkability') !== null) html += `Walkability (slope): ${gv('slope_walkability')}<br>`;
+          html += `<span style="font-size:0.85em;color:#aaa">Slope penalty via Tobler's hiking function</span><br>`;
         } else if (gv('betweenness') !== null) {
           // Street network edge
           const name = gv('name') || '(unnamed road)';
@@ -549,6 +561,60 @@
 
     // Provenance filter state
     const provenanceState = { 'gov-sg': true, 'global': true };
+
+    // RS grid colour mode
+    let rsGridMode = 'ndvi';
+    const RS_GRID_MODES = {
+      ndvi:  { label: 'NDVI', field: 'ndvi', ramp: ['#e8f5e9','#a5d6a7','#66bb6a','#388e3c','#2e7d32','#1b5e20'], unit: '' },
+      dem:   { label: 'DEM',  field: 'dem_m', ramp: ['#2166ac','#67a9cf','#d1e5f0','#fddbc7','#ef8a62','#b2182b'], unit: ' m' },
+      slope: { label: 'Slope', field: 'slope_deg', ramp: ['#ffffcc','#c2e699','#78c679','#31a354','#006837','#004529'], unit: '°' },
+      lst:   { label: 'LST',  field: 'lst_c', ramp: ['#2166ac','#67a9cf','#fddbc7','#ef8a62','#d6604d','#b2182b'], unit: ' °C' },
+      ndbi:  { label: 'NDBI', field: 'ndbi', ramp: ['#1a9850','#91cf60','#d9ef8b','#fee08b','#fc8d59','#d73027'], unit: '' },
+    };
+
+    function recolourRsGrid() {
+      const state = layerState['rs_grid'];
+      if (!state || !state.dataSource) return;
+      const ds = state.dataSource;
+      const mode = RS_GRID_MODES[rsGridMode];
+      const field = mode.field;
+      const ramp = mode.ramp;
+      const alpha = 0.5;
+
+      // Compute min/max for dynamic scaling
+      const values = ds.entities.values
+        .map(e => e.properties && e.properties[field] ? e.properties[field].getValue() : null)
+        .filter(v => v !== null && !isNaN(v));
+      const minVal = Math.min(...values);
+      const maxVal = Math.max(...values);
+      const range = maxVal - minVal || 1;
+
+      ds.entities.values.forEach(entity => {
+        if (entity.polygon) {
+          const props = entity.properties;
+          const val = props && props[field] ? props[field].getValue() : null;
+          let c;
+          if (val !== null && !isNaN(val)) {
+            const t = (val - minVal) / range;
+            const step = Math.min(Math.floor(t * ramp.length), ramp.length - 1);
+            c = Cesium.Color.fromCssColorString(ramp[step]).withAlpha(alpha);
+          } else {
+            c = Cesium.Color.GRAY.withAlpha(0.15);
+          }
+          entity.polygon.material = c;
+        }
+      });
+
+      // Update legend dynamically
+      LAYER_LEGEND_DEFS.rs_grid = {
+        title: `100m grid (${mode.label})`,
+        type: 'gradient',
+        gradient: `linear-gradient(to right, ${ramp[0]}, ${ramp[Math.floor(ramp.length/2)]}, ${ramp[ramp.length-1]})`,
+        min: minVal.toFixed(1) + mode.unit,
+        max: maxVal.toFixed(1) + mode.unit,
+      };
+      updateLayerLegend();
+    }
 
     function updateGroupCounts() {
       const counts = DISTRICTS[currentDistrict].layerCounts || {};
@@ -747,6 +813,29 @@
 
           groupBody.appendChild(row);
           layerState[layer.id] = { dataSource: null, loaded: false, visible: cb.checked };
+
+          // RS grid mode selector (colour by NDVI/DEM/Slope/LST/NDBI)
+          if (layer.id === 'rs_grid') {
+            const modeBar = document.createElement('div');
+            modeBar.className = 'rs-grid-mode';
+            modeBar.id = 'rs-grid-mode-bar';
+            Object.entries(RS_GRID_MODES).forEach(([key, mode]) => {
+              const btn = document.createElement('span');
+              btn.className = 'rs-grid-mode-btn' + (key === rsGridMode ? ' active' : '');
+              btn.textContent = mode.label;
+              btn.dataset.mode = key;
+              btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                rsGridMode = key;
+                modeBar.querySelectorAll('.rs-grid-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                recolourRsGrid();
+              });
+              modeBar.appendChild(btn);
+            });
+            groupBody.appendChild(modeBar);
+          }
         });
 
         body.appendChild(header);
@@ -949,25 +1038,15 @@
               }
             });
           }
-          // RS grid — colour 100m cells by NDVI
+          // RS grid — colour by selected mode (NDVI/DEM/Slope/LST/NDBI)
           else if (id === 'rs_grid') {
             ds.entities.values.forEach(entity => {
               if (entity.polygon) {
-                const props = entity.properties;
-                const ndvi = props && props.ndvi ? props.ndvi.getValue() : 0;
-                const alpha = 0.5;
-                let c;
-                if (ndvi > 0.6) c = Cesium.Color.fromCssColorString('#1b5e20').withAlpha(alpha);
-                else if (ndvi > 0.5) c = Cesium.Color.fromCssColorString('#2e7d32').withAlpha(alpha);
-                else if (ndvi > 0.4) c = Cesium.Color.fromCssColorString('#388e3c').withAlpha(alpha);
-                else if (ndvi > 0.3) c = Cesium.Color.fromCssColorString('#66bb6a').withAlpha(alpha);
-                else if (ndvi > 0.2) c = Cesium.Color.fromCssColorString('#a5d6a7').withAlpha(alpha);
-                else c = Cesium.Color.fromCssColorString('#e8f5e9').withAlpha(alpha);
-                entity.polygon.material = c;
                 entity.polygon.outline = false;
                 entity.polygon.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
               }
             });
+            recolourRsGrid();
           }
           // Walkability grid layers — 6-step colour ramp
           else if (layer.colorField) {
@@ -1119,9 +1198,12 @@
         name: 'Walkability',
         metrics: [
           { value: 'walkability_index', label: 'Walkability (BEH-NWI)', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'walkability_slope', label: 'Walkability (slope-adj)', unit: '', fmt: 'float', badge: 'idx' },
           { value: 'intersection_density', label: 'Intersection density', unit: '/km\u00B2', fmt: 'int', badge: 'idx' },
           { value: 'transit_access_score', label: 'Transit access', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'transit_access_slope', label: 'Transit (slope-adj)', unit: '', fmt: 'float', badge: 'idx' },
           { value: 'destination_accessibility', label: 'Destination access', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'dest_access_slope', label: 'Dest access (slope-adj)', unit: '', fmt: 'float', badge: 'idx' },
         ]
       },
     ];
@@ -1293,15 +1375,9 @@
       },
       rs_grid: {
         title: '100m grid (NDVI)',
-        type: 'discrete',
-        items: [
-          { color: '#1b5e20', label: '> 0.6' },
-          { color: '#2e7d32', label: '0.5 – 0.6' },
-          { color: '#388e3c', label: '0.4 – 0.5' },
-          { color: '#66bb6a', label: '0.3 – 0.4' },
-          { color: '#a5d6a7', label: '0.2 – 0.3' },
-          { color: '#e8f5e9', label: '≤ 0.2' },
-        ]
+        type: 'gradient',
+        gradient: 'linear-gradient(to right, #e8f5e9, #388e3c, #1b5e20)',
+        min: '0.0', max: '0.8',
       },
     };
 

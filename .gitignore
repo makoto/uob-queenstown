@@ -11,11 +11,12 @@ data/osm/queenstown-buildings.json
 docs/3dtiles/buildings.b3dm
 docs/3dtiles/tileset.json
 
-# PDF papers (keep markdown summaries, skip large PDFs)
-literature/papers/*.pdf
-
 # Temporary Mapillary downloads
 tmp_mapillary/
+tmp_mapillary_*/
+
+# Private files (literature, site visit reports)
+private/
 
 # Playwright MCP
 .playwright-mcp/

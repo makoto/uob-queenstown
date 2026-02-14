@@ -69,16 +69,16 @@
 Data Sources                    Processing                      Output
 ─────────────                   ──────────                      ──────
 data.gov.sg  ──┐
-URA / OneMap ──┤                filter_district_layers.py ──→ docs/geo/gov-sg/*.geojson
-LTA DataMall ──┘                generate_subzone_summary.py ──→ docs/geo/{district}-subzone-summary.*
+URA / OneMap ──┤                src/filter_district_layers.py ──→ docs/geo/gov-sg/*.geojson
+LTA DataMall ──┘                src/generate_subzone_summary.py ──→ docs/geo/{district}-subzone-summary.*
 
 OSM Overpass ──────────────────────────────────────────────────→ docs/geo/global/*-buildings*.geojson
-                                generate_3dtiles.py ───────────→ docs/3dtiles/{district}/tileset.json + .b3dm
+                                src/generate_3dtiles.py ───────→ docs/3dtiles/{district}/tileset.json + .b3dm
 
 OSMnx ─────────┐
-Google Earth ──┤── fetch_global_layers.py ─────────────────────→ docs/geo/global/{district}-*.geojson
+Google Earth ──┤── src/fetch_global_layers.py ─────────────────→ docs/geo/global/{district}-*.geojson
 Engine ────────┘                                                 docs/geo/global/rasters/*.png
-                               generate_walkability.py ──────────→ docs/geo/global/{district}-walkability*.json/geojson
+                               src/generate_walkability.py ────→ docs/geo/global/{district}-walkability*.json/geojson
 
                                             ┌──────────────────────────────┐
 All GeoJSON + PNG + 3D Tiles ──────────────→│  CesiumJS Viewer (viewer.html) │
@@ -96,8 +96,8 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
     <tr><th>Library</th><th>Version</th><th>Purpose</th><th>Used In</th></tr>
     <tr><td><a href="https://www.python.org/">Python</a></td><td>3.10 / 3.12</td><td>Runtime (3.10 for zensvi env, 3.12 for CI)</td><td>All scripts</td></tr>
     <tr><td><a href="https://docs.python.org/3/library/json.html">json</a> (stdlib)</td><td>&mdash;</td><td>GeoJSON reading/writing</td><td>All scripts</td></tr>
-    <tr><td><a href="https://docs.python.org/3/library/csv.html">csv</a> (stdlib)</td><td>&mdash;</td><td>CSV parsing (census, resale prices)</td><td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_subzone_summary.py"><code>generate_subzone_summary.py</code></a></td></tr>
-    <tr><td><a href="https://docs.python.org/3/library/statistics.html">statistics</a> (stdlib)</td><td>&mdash;</td><td>Median, mean calculations</td><td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_subzone_summary.py"><code>generate_subzone_summary.py</code></a></td></tr>
+    <tr><td><a href="https://docs.python.org/3/library/csv.html">csv</a> (stdlib)</td><td>&mdash;</td><td>CSV parsing (census, resale prices)</td><td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_subzone_summary.py"><code>src/generate_subzone_summary.py</code></a></td></tr>
+    <tr><td><a href="https://docs.python.org/3/library/statistics.html">statistics</a> (stdlib)</td><td>&mdash;</td><td>Median, mean calculations</td><td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_subzone_summary.py"><code>src/generate_subzone_summary.py</code></a></td></tr>
   </table>
 
   <h3 id="py-geospatial">Geospatial Libraries</h3>
@@ -107,31 +107,31 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
       <td><a href="https://shapely.readthedocs.io/">Shapely</a></td>
       <td>2.x</td>
       <td>Geometry operations: point-in-polygon, line clipping, area/length calculations, spatial joins</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/filter_district_layers.py"><code>filter_district_layers.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_subzone_summary.py"><code>generate_subzone_summary.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/filter_district_layers.py"><code>src/filter_district_layers.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_subzone_summary.py"><code>src/generate_subzone_summary.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr>
     <tr>
       <td><a href="https://geopandas.org/">GeoPandas</a></td>
       <td>0.14</td>
       <td>GeoDataFrame I/O, spatial data manipulation, GeoJSON/Shapefile export</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr>
     <tr>
       <td><a href="https://osmnx.readthedocs.io/">OSMnx</a></td>
       <td>1.9</td>
       <td>Download OpenStreetMap street networks, convert to graph, export edges as GeoJSON</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr>
     <tr>
       <td><a href="https://networkx.org/">NetworkX</a></td>
       <td>3.3</td>
       <td>Graph analysis: betweenness centrality computation on street network</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a> (via OSMnx)</td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a> (via OSMnx)</td>
     </tr>
     <tr>
       <td><a href="https://pyproj4.github.io/pyproj/">pyproj</a></td>
       <td>3.x</td>
       <td>Coordinate transformations: WGS84 &rarr; ECEF for 3D Tiles</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_3dtiles.py"><code>generate_3dtiles.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_3dtiles.py"><code>src/generate_3dtiles.py</code></a></td>
     </tr>
   </table>
 
@@ -142,19 +142,19 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
       <td><a href="https://developers.google.com/earth-engine/guides/python_install">earthengine-api</a> (<code>ee</code>)</td>
       <td>1.7</td>
       <td>Google Earth Engine Python client: compute zonal statistics from satellite imagery (Landsat, Sentinel-2, GHSL, ALOS, SRTM, Hansen), export raster thumbnails as PNG</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr>
     <!-- <tr>
       <td><a href="https://github.com/koito19960406/ZenSVI">ZenSVI</a></td>
       <td>latest</td>
       <td>Mapillary street-level image metadata download via <code>MLYDownloader</code></td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr> -->
     <tr>
       <td><a href="https://pypi.org/project/python-dotenv/">python-dotenv</a></td>
       <td>&mdash;</td>
       <td>Load API keys from <code>.env</code> file</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr>
   </table>
 
@@ -165,19 +165,19 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
       <td><a href="https://numpy.org/">NumPy</a></td>
       <td>1.x / 2.x</td>
       <td>Array operations for vertex/triangle buffer construction</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_3dtiles.py"><code>generate_3dtiles.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_3dtiles.py"><code>src/generate_3dtiles.py</code></a></td>
     </tr>
     <tr>
       <td><a href="https://github.com/nicola17/mapbox-earcut-python">mapbox_earcut</a></td>
       <td>&mdash;</td>
       <td>Polygon triangulation (earcut algorithm) for building footprint meshing</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_3dtiles.py"><code>generate_3dtiles.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_3dtiles.py"><code>src/generate_3dtiles.py</code></a></td>
     </tr>
     <tr>
       <td><a href="https://gitlab.com/Oslandia/py3dtiles">py3dtiles</a></td>
       <td>&mdash;</td>
       <td>Construct B3DM (Batched 3D Model) files and tileset.json manifests</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_3dtiles.py"><code>generate_3dtiles.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_3dtiles.py"><code>src/generate_3dtiles.py</code></a></td>
     </tr>
   </table>
 
@@ -219,7 +219,7 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
     <tr><td>3D building rendering</td><td><code>Cesium3DTileset</code> + <code>Cesium3DTileStyle</code> (height-based colour conditions)</td></tr>
     <tr><td>GeoJSON vector overlays (20 layers)</td><td><code>GeoJsonDataSource.load()</code> with lazy loading on toggle; dynamic legends for street network, remote sensing, and intersection density grid layers</td></tr>
     <tr><td>Satellite raster overlays (4 layers)</td><td><code>SingleTileImageryProvider</code> with georeferenced PNG bounds</td></tr>
-    <tr><td>Choropleth heatmap (30 metrics)</td><td>Manual polygon entities with <code>PolygonHierarchy</code>, 5-step YlOrRd colour ramp</td></tr>
+    <tr><td>Choropleth heatmap (33 metrics)</td><td>Manual polygon entities with <code>PolygonHierarchy</code>, 5-step YlOrRd colour ramp</td></tr>
     <tr><td>Basemap switching (4 options)</td><td>Dark (CARTO), Light (CARTO), Satellite (Bing via <code>IonImageryProvider</code>), Terrain (OpenTopoMap)</td></tr>
     <tr><td>Click interaction</td><td><code>ScreenSpaceEventHandler</code> + <code>scene.pick()</code>; click any feature for attribute popup</td></tr>
     <tr><td>Terrain clamping</td><td><code>sampleTerrainMostDetailed()</code> for auto height offset</td></tr>
@@ -235,25 +235,25 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
       <td><a href="https://developers.google.com/earth-engine">Google Earth Engine</a></td>
       <td><span class="badge badge-api">GCP project</span></td>
       <td><code>ee.ImageCollection</code> filtering, <code>reduceRegions()</code> for zonal stats, <code>getThumbURL()</code> for raster export. Datasets: Landsat 9 (LST), Sentinel-2 (NDVI/NDBI), JRC GHSL (building height), ALOS AW3D30 (DSM), SRTM (DEM), Hansen (canopy cover).</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr>
     <!-- <tr>
       <td><a href="https://www.mapillary.com/developer">Mapillary API</a></td>
       <td><span class="badge badge-api">API key</span></td>
       <td>Street-level image metadata download via ZenSVI&rsquo;s vector tile fetcher. Returns image ID, lat/lon, compass angle, panoramic flag.</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr> -->
     <tr>
       <td><a href="https://overpass-turbo.eu/">Overpass API</a> (OSM)</td>
       <td>None</td>
       <td>Building footprints for all 5 districts (queried via OSMnx).</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr>
     <tr>
       <td><a href="https://osmnx.readthedocs.io/">OSMnx / Nominatim</a></td>
       <td>None</td>
       <td>Street network graph download via bounding box.</td>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
     </tr>
     <tr>
       <td><a href="https://ion.cesium.com/">Cesium ion</a></td>
@@ -308,7 +308,7 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
     <tr>
       <td><a href="https://github.com/features/actions">GitHub Actions</a></td>
       <td><code>.github/workflows/deploy.yml</code></td>
-      <td>Build pipeline: installs Python deps, runs 4 scripts (<a href="https://github.com/makoto/uob-sg-guide/blob/main/extract_district.py"><code>extract_district.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_subzone_summary.py"><code>generate_subzone_summary.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/filter_district_layers.py"><code>filter_district_layers.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_3dtiles.py"><code>generate_3dtiles.py</code></a>) for all 5 districts, uploads <code>docs/</code> as Pages artifact.</td>
+      <td>Build pipeline: installs Python deps, runs 4 scripts (<a href="https://github.com/makoto/uob-sg-guide/blob/main/src/extract_district.py"><code>src/extract_district.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_subzone_summary.py"><code>src/generate_subzone_summary.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/src/filter_district_layers.py"><code>src/filter_district_layers.py</code></a>, <a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_3dtiles.py"><code>src/generate_3dtiles.py</code></a>) for all 5 districts, uploads <code>docs/</code> as Pages artifact.</td>
     </tr>
     <tr>
       <td><a href="https://pages.github.com/">GitHub Pages</a></td>
@@ -316,7 +316,7 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
       <td>Hosts the static site (viewer, index, catalogues, all GeoJSON/PNG/3DTiles).</td>
     </tr>
   </table>
-  <p class="section-note"><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a> is NOT in CI &mdash; it requires the <code>zensvi</code> conda env and GEE authentication. Run manually; outputs are committed to <code>docs/geo/global/</code>.</p>
+  <p class="section-note"><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a> is NOT in CI &mdash; it requires the <code>zensvi</code> conda env and GEE authentication. Run manually; outputs are committed to <code>docs/geo/global/</code>.</p>
 
   <h3>CI Python dependencies</h3>
   <p class="section-note">Installed in the GitHub Actions workflow via <code>pip install</code>:</p>
@@ -335,35 +335,35 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
   <table>
     <tr><th>Script</th><th>Runtime</th><th>Input</th><th>Output</th><th>Key Libraries</th></tr>
     <tr>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_subzone_summary.py"><code>generate_subzone_summary.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_subzone_summary.py"><code>src/generate_subzone_summary.py</code></a></td>
       <td>Python 3.10+</td>
       <td>Subzones GeoJSON, point/line datasets (data.gov.sg), census CSV, resale CSV, remote sensing GeoJSON</td>
       <td><code>{district}-subzone-summary.geojson</code> + <code>.csv</code></td>
       <td>Shapely, json, csv, statistics</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/filter_district_layers.py"><code>filter_district_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/filter_district_layers.py"><code>src/filter_district_layers.py</code></a></td>
       <td>Python 3.10+</td>
       <td>Island-wide GeoJSONs (data.gov.sg), boundary polygon</td>
       <td>16 filtered <code>gov-sg/*.geojson</code> files</td>
       <td>Shapely, json</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_3dtiles.py"><code>generate_3dtiles.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_3dtiles.py"><code>src/generate_3dtiles.py</code></a></td>
       <td>Python 3.10+</td>
       <td>Buildings GeoJSON</td>
       <td><code>tileset.json</code> + <code>buildings.b3dm</code></td>
       <td>NumPy, pyproj, mapbox_earcut, py3dtiles</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/fetch_global_layers.py"><code>fetch_global_layers.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/fetch_global_layers.py"><code>src/fetch_global_layers.py</code></a></td>
       <td><code>zensvi</code> conda env (Python 3.10)</td>
       <td>APIs: OSMnx, GEE</td>
       <td>Street network, remote sensing, raster PNGs, grid</td>
       <td>OSMnx, NetworkX, ee, GeoPandas, ZenSVI, python-dotenv</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/generate_walkability.py"><code>generate_walkability.py</code></a></td>
+      <td><a href="https://github.com/makoto/uob-sg-guide/blob/main/src/generate_walkability.py"><code>src/generate_walkability.py</code></a></td>
       <td><code>zensvi</code> conda env (Python 3.10)</td>
       <td>Walk network (OSMnx), POI GeoJSONs, subzones, boundary, population data</td>
       <td><code>{district}-walkability.json</code> + <code>{district}-walkability-grid.geojson</code></td>

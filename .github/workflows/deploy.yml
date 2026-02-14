@@ -34,7 +34,7 @@ jobs:
         run: |
           if [ -d data/ura ]; then
             for district in queenstown bishan outram tampines newton; do
-              python extract_district.py "$district"
+              python src/extract_district.py "$district"
             done
           else
             echo "Source data not available, using committed files"
@@ -44,7 +44,7 @@ jobs:
         run: |
           if [ -d data/data-gov-sg ]; then
             for district in queenstown bishan outram tampines newton; do
-              python generate_subzone_summary.py --district "$district"
+              python src/generate_subzone_summary.py --district "$district"
             done
           else
             echo "Source data not available, using committed files"
@@ -54,7 +54,7 @@ jobs:
         run: |
           if [ -d data/data-gov-sg ]; then
             for district in queenstown bishan outram tampines newton; do
-              python filter_district_layers.py --district "$district"
+              python src/filter_district_layers.py --district "$district"
             done
           else
             echo "Source data not available, using committed files"
@@ -63,7 +63,7 @@ jobs:
       - name: Generate 3D Tiles (B3DM + tileset.json)
         run: |
           for district in queenstown bishan outram tampines newton; do
-            python generate_3dtiles.py --district "$district"
+            python src/generate_3dtiles.py --district "$district"
           done
 
       - name: Upload Pages artifact
