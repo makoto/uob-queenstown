@@ -15,18 +15,44 @@
     .legend { margin-top: 8px; font-size: 11px; line-height: 1.6; }
     .legend-item { display: flex; align-items: center; gap: 6px; }
     .legend-swatch { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-    #layer-panel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 0; border-radius: 5px; font-family: sans-serif; font-size: 12px; z-index: 1; min-width: 220px; max-height: calc(100vh - 30px); overflow-y: auto; }
+    #layer-panel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 0; border-radius: 5px; font-family: sans-serif; font-size: 12px; z-index: 1; min-width: 220px; max-width: 280px; max-height: calc(100vh - 30px); overflow-y: auto; }
     #layer-panel-header { padding: 8px 12px; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.15); }
     #layer-panel-header:hover { background: rgba(255,255,255,0.1); border-radius: 5px 5px 0 0; }
     #layer-panel-body { padding: 6px 0; }
     .layer-group-title { color: #aaa; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 12px 2px; margin-top: 2px; }
+    .layer-group-header { color: #aaa; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 12px; margin-top: 2px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
+    .layer-group-header:hover { background: rgba(255,255,255,0.06); }
+    .layer-group-header .chevron { transition: transform 0.2s; display: inline-block; font-size: 8px; width: 8px; }
+    .layer-group-header .chevron.open { transform: rotate(90deg); }
+    .layer-group-header .group-label { flex: 1; }
+    .layer-group-header .group-count { color: #666; font-size: 9px; }
+    .layer-group-body { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+    .layer-group-body.open { max-height: 600px; }
+    .layer-row.zero-count { opacity: 0.35; }
     .layer-row { display: flex; align-items: center; gap: 6px; padding: 3px 12px; cursor: pointer; }
     .layer-row:hover { background: rgba(255,255,255,0.08); }
     .layer-row input[type="checkbox"] { margin: 0; cursor: pointer; }
     .layer-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .layer-label { flex: 1; }
-    .choropleth-select { width: 100%; padding: 4px 6px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); border-radius: 3px; font-family: sans-serif; font-size: 12px; margin: 4px 12px; box-sizing: border-box; width: calc(100% - 24px); cursor: pointer; }
-    .choropleth-select option { background: #222; color: white; }
+    .choro-cat-header { color: #999; font-size: 10px; padding: 4px 16px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; }
+    .choro-cat-header:hover { background: rgba(255,255,255,0.06); }
+    .choro-cat-header .chevron { font-size: 7px; transition: transform 0.2s; display: inline-block; width: 7px; }
+    .choro-cat-header .chevron.open { transform: rotate(90deg); }
+    .choro-cat-body { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+    .choro-cat-body.open { max-height: 400px; }
+    .choro-metric { display: flex; align-items: center; gap: 6px; padding: 3px 20px; cursor: pointer; font-size: 11px; }
+    .choro-metric:hover { background: rgba(255,255,255,0.08); }
+    .choro-metric.active { background: rgba(255,255,255,0.15); color: #ffcc00; }
+    .choro-metric-label { flex: 1; }
+    .choro-off-btn { display: block; width: calc(100% - 24px); margin: 4px 12px; padding: 3px 8px; background: rgba(255,255,255,0.1); color: #aaa; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 11px; cursor: pointer; text-align: center; }
+    .choro-off-btn:hover { background: rgba(255,255,255,0.18); }
+    .type-badge { font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 2px; flex-shrink: 0; letter-spacing: 0.3px; }
+    .type-badge.cnt { background: rgba(255,152,0,0.3); color: #ffb74d; }
+    .type-badge.rate { background: rgba(76,175,80,0.3); color: #81c784; }
+    .type-badge.idx { background: rgba(33,150,243,0.3); color: #64b5f6; }
+    .type-badge.sat { background: rgba(156,39,176,0.3); color: #ce93d8; }
+    .catalogue-link { display: block; padding: 8px 12px; border-top: 1px solid rgba(255,255,255,0.1); color: #4fc3f7; text-decoration: none; font-size: 11px; text-align: center; }
+    .catalogue-link:hover { background: rgba(255,255,255,0.06); color: #81d4fa; }
     .district-select { width: calc(100% - 24px); padding: 5px 6px; background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.35); border-radius: 3px; font-family: sans-serif; font-size: 12px; font-weight: bold; margin: 6px 12px 2px; box-sizing: border-box; cursor: pointer; }
     .district-select option { background: #222; color: white; }
     .provenance-bar { display: flex; gap: 6px; padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -89,6 +115,9 @@
       homeButton: false,
       animation: false,
       timeline: false,
+      navigationHelpButton: false,
+      sceneModePicker: false,
+      fullscreenButton: false,
     });
 
     // ---------------------------------------------------------------
@@ -99,26 +128,31 @@
         label: 'Queenstown',
         camera: [103.7885, 1.2870, 2000],
         rasterBounds: [103.7502, 1.2550, 103.8166, 1.3188],
+        layerCounts: { hawker: 9, supermarket: 19, mrt: 26, parks: 9, parkfac: 370, parkconn: 36, cycling: 110, cc: 4, gym: 4, preschool: 81, chas: 43, hdb: 308, heightctl: 7, streetnet: 3788, walk_idx: 2178, walk_intdens: 2178, walk_transit: 2178, walk_dest: 2178, rs_grid: 2394 },
       },
       bishan: {
         label: 'Bishan',
         camera: [103.8395, 1.3550, 2000],
         rasterBounds: [103.8185, 1.3420, 103.8604, 1.3680],
+        layerCounts: { hawker: 1, supermarket: 8, mrt: 16, parks: 18, parkfac: 173, parkconn: 10, cycling: 160, cc: 4, gym: 5, preschool: 50, chas: 20, hdb: 1, heightctl: 0, streetnet: 1363, walk_idx: 769, walk_intdens: 769, walk_transit: 769, walk_dest: 769, rs_grid: 840 },
       },
       outram: {
         label: 'Outram',
         camera: [103.8423, 1.2817, 1500],
         rasterBounds: [103.8348, 1.2742, 103.8497, 1.2892],
+        layerCounts: { hawker: 5, supermarket: 7, mrt: 16, parks: 5, parkfac: 11, parkconn: 0, cycling: 27, cc: 2, gym: 19, preschool: 16, chas: 16, hdb: 1, heightctl: 0, streetnet: 711, walk_idx: 135, walk_intdens: 135, walk_transit: 135, walk_dest: 135, rs_grid: 175 },
       },
       tampines: {
         label: 'Tampines',
         camera: [103.9549, 1.3450, 2000],
         rasterBounds: [103.9250, 1.3141, 103.9848, 1.3758],
+        layerCounts: { hawker: 3, supermarket: 25, mrt: 27, parks: 13, parkfac: 194, parkconn: 19, cycling: 471, cc: 6, gym: 4, preschool: 142, chas: 81, hdb: 19, heightctl: 0, streetnet: 4144, walk_idx: 2085, walk_intdens: 2085, walk_transit: 2085, walk_dest: 2085, rs_grid: 2230 },
       },
       newton: {
         label: 'Newton',
         camera: [103.8377, 1.3085, 1500],
         rasterBounds: [103.8267, 1.2996, 103.8487, 1.3174],
+        layerCounts: { hawker: 1, supermarket: 0, mrt: 3, parks: 1, parkfac: 2, parkconn: 0, cycling: 0, cc: 1, gym: 1, preschool: 7, chas: 3, hdb: 0, heightctl: 0, streetnet: 838, walk_idx: 210, walk_intdens: 210, walk_transit: 210, walk_dest: 210, rs_grid: 265 },
       },
     };
 
@@ -504,6 +538,25 @@
     // Provenance filter state
     const provenanceState = { 'gov-sg': true, 'global': true };
 
+    function updateGroupCounts() {
+      const counts = DISTRICTS[currentDistrict].layerCounts || {};
+      const groupTotals = {};
+      const seen = {};
+      LAYERS.forEach(layer => {
+        const g = layer.group;
+        if (!groupTotals[g]) { groupTotals[g] = 0; seen[g] = new Set(); }
+        if (counts[layer.id] === undefined) return;
+        if (layer.source && !provenanceState[layer.source]) return;
+        if (layer.file && seen[g].has(layer.file)) return;
+        if (layer.file) seen[g].add(layer.file);
+        groupTotals[g] += counts[layer.id];
+      });
+      for (const [groupName, total] of Object.entries(groupTotals)) {
+        const el = document.querySelector(`[data-group-count="${groupName}"]`);
+        if (el) el.textContent = total > 0 ? total.toLocaleString() : '';
+      }
+    }
+
     function onProvenanceToggle(source, enabled) {
       provenanceState[source] = enabled;
       LAYERS.forEach(layer => {
@@ -520,12 +573,19 @@
           }
         }
         cb.disabled = !enabled;
-        cb.closest('.layer-row').style.opacity = enabled ? '1' : '0.4';
+        const row = cb.closest('.layer-row');
+        if (!enabled) {
+          row.style.opacity = '0.4';
+        } else {
+          row.style.opacity = '';  // let CSS class (.zero-count) take effect
+        }
       });
+      updateGroupCounts();
     }
 
     function buildLayerPanel() {
       const body = document.getElementById('layer-panel-body');
+      const counts = DISTRICTS[currentDistrict].layerCounts || {};
 
       // District selector
       const distTitle = document.createElement('div');
@@ -569,84 +629,217 @@
       provBar.appendChild(btnGlobal);
       body.appendChild(provBar);
 
-      // Choropleth group at the top
-      const choroTitle = document.createElement('div');
-      choroTitle.className = 'layer-group-title';
-      choroTitle.textContent = 'Choropleth';
-      body.appendChild(choroTitle);
-
-      const choroSelect = document.createElement('select');
-      choroSelect.className = 'choropleth-select';
-      choroSelect.id = 'choropleth-select';
-      CHOROPLETH_METRICS.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.value;
-        opt.textContent = m.label;
-        choroSelect.appendChild(opt);
+      // --- Collapsible layer groups ---
+      const groups = [];
+      const groupMap = {};
+      LAYERS.forEach(layer => {
+        if (!groupMap[layer.group]) {
+          groupMap[layer.group] = [];
+          groups.push(layer.group);
+        }
+        groupMap[layer.group].push(layer);
       });
-      choroSelect.addEventListener('change', () => updateChoropleth(choroSelect.value));
-      body.appendChild(choroSelect);
 
+      groups.forEach(groupName => {
+        const layers = groupMap[groupName];
+        const isExpanded = groupName === 'Boundaries';
+
+        // Calculate group total (only counted layers)
+        let groupTotal = 0;
+        const seen = new Set();
+        layers.forEach(l => {
+          if (counts[l.id] !== undefined && !seen.has(l.file)) {
+            groupTotal += counts[l.id];
+            if (l.file) seen.add(l.file);
+          }
+        });
+
+        // Group header
+        const header = document.createElement('div');
+        header.className = 'layer-group-header';
+
+        const chevron = document.createElement('span');
+        chevron.className = 'chevron' + (isExpanded ? ' open' : '');
+        chevron.textContent = '\u25B6';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'group-label';
+        nameSpan.textContent = groupName;
+
+        const countSpan = document.createElement('span');
+        countSpan.className = 'group-count';
+        countSpan.setAttribute('data-group-count', groupName);
+        if (groupTotal > 0) countSpan.textContent = groupTotal.toLocaleString();
+
+        header.appendChild(chevron);
+        header.appendChild(nameSpan);
+        header.appendChild(countSpan);
+
+        // Group body
+        const groupBody = document.createElement('div');
+        groupBody.className = 'layer-group-body' + (isExpanded ? ' open' : '');
+
+        header.addEventListener('click', () => {
+          const open = groupBody.classList.toggle('open');
+          chevron.classList.toggle('open', open);
+        });
+
+        // Build layer rows inside groupBody
+        layers.forEach(layer => {
+          const row = document.createElement('label');
+          row.className = 'layer-row';
+
+          const count = counts[layer.id];
+          if (count === 0) row.classList.add('zero-count');
+
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.id = 'layer-cb-' + layer.id;
+          cb.checked = !!layer.onByDefault;
+          cb.addEventListener('change', () => onLayerToggle(layer.id, cb.checked));
+
+          const swatch = document.createElement('span');
+          swatch.className = 'layer-color';
+          swatch.style.background = layer.color;
+          if (layer.type === 'line') {
+            swatch.style.borderRadius = '2px';
+            swatch.style.width = '14px';
+            swatch.style.height = '4px';
+          } else if (layer.type === 'raster') {
+            swatch.style.borderRadius = '2px';
+            swatch.style.width = '14px';
+            swatch.style.height = '10px';
+            swatch.style.background = `linear-gradient(to right, ${layer.color}44, ${layer.color})`;
+          } else if (layer.type === 'polygon') {
+            swatch.style.borderRadius = '2px';
+            swatch.style.opacity = '0.5';
+          }
+
+          const label = document.createElement('span');
+          label.className = 'layer-label';
+          let labelText = layer.label;
+          if (count !== undefined) labelText += ` (${count.toLocaleString()})`;
+          label.textContent = labelText;
+
+          row.appendChild(cb);
+          row.appendChild(swatch);
+          row.appendChild(label);
+
+          // Source badge
+          if (layer.source) {
+            const badge = document.createElement('span');
+            badge.className = 'source-badge';
+            badge.textContent = layer.source === 'gov-sg' ? 'SG' : '\uD83C\uDF10';
+            row.appendChild(badge);
+          }
+
+          groupBody.appendChild(row);
+          layerState[layer.id] = { dataSource: null, loaded: false, visible: cb.checked };
+        });
+
+        body.appendChild(header);
+        body.appendChild(groupBody);
+      });
+
+      // --- Choropleth accordion ---
+      const choroHeader = document.createElement('div');
+      choroHeader.className = 'layer-group-header';
+      const choroChevron = document.createElement('span');
+      choroChevron.className = 'chevron';
+      choroChevron.textContent = '\u25B6';
+      const choroLabel = document.createElement('span');
+      choroLabel.className = 'group-label';
+      choroLabel.textContent = 'Choropleth';
+      const choroCount = document.createElement('span');
+      choroCount.className = 'group-count';
+      choroCount.textContent = '25';
+      choroHeader.appendChild(choroChevron);
+      choroHeader.appendChild(choroLabel);
+      choroHeader.appendChild(choroCount);
+
+      const choroBody = document.createElement('div');
+      choroBody.className = 'layer-group-body';
+
+      choroHeader.addEventListener('click', () => {
+        const open = choroBody.classList.toggle('open');
+        choroChevron.classList.toggle('open', open);
+      });
+
+      // Off button
+      const offBtn = document.createElement('button');
+      offBtn.className = 'choro-off-btn';
+      offBtn.textContent = 'Off';
+      offBtn.addEventListener('click', () => {
+        choroBody.querySelectorAll('.choro-metric.active').forEach(el => el.classList.remove('active'));
+        updateChoropleth('');
+      });
+      choroBody.appendChild(offBtn);
+
+      // Choropleth legend
       const legendDiv = document.createElement('div');
       legendDiv.id = 'choropleth-legend';
       legendDiv.innerHTML = '<div class="gradient-bar"></div><div class="legend-labels"><span id="choropleth-min"></span><span id="choropleth-max"></span></div>';
-      body.appendChild(legendDiv);
+      choroBody.appendChild(legendDiv);
 
-      let currentGroup = null;
-      LAYERS.forEach(layer => {
-        if (layer.group !== currentGroup) {
-          currentGroup = layer.group;
-          const title = document.createElement('div');
-          title.className = 'layer-group-title';
-          title.textContent = currentGroup;
-          body.appendChild(title);
-        }
-        const row = document.createElement('label');
-        row.className = 'layer-row';
+      // Sub-categories
+      CHOROPLETH_CATEGORIES.forEach(cat => {
+        const catHeader = document.createElement('div');
+        catHeader.className = 'choro-cat-header';
+        const catChevron = document.createElement('span');
+        catChevron.className = 'chevron';
+        catChevron.textContent = '\u25B6';
+        const catName = document.createElement('span');
+        catName.textContent = cat.name;
+        catHeader.appendChild(catChevron);
+        catHeader.appendChild(catName);
 
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.id = 'layer-cb-' + layer.id;
-        cb.checked = !!layer.onByDefault;
-        cb.addEventListener('change', () => onLayerToggle(layer.id, cb.checked));
+        const catBody = document.createElement('div');
+        catBody.className = 'choro-cat-body';
 
-        const swatch = document.createElement('span');
-        swatch.className = 'layer-color';
-        swatch.style.background = layer.color;
-        if (layer.type === 'line') {
-          swatch.style.borderRadius = '2px';
-          swatch.style.width = '14px';
-          swatch.style.height = '4px';
-        } else if (layer.type === 'raster') {
-          swatch.style.borderRadius = '2px';
-          swatch.style.width = '14px';
-          swatch.style.height = '10px';
-          swatch.style.background = `linear-gradient(to right, ${layer.color}44, ${layer.color})`;
-        } else if (layer.type === 'polygon') {
-          swatch.style.borderRadius = '2px';
-          swatch.style.opacity = '0.5';
-        }
+        catHeader.addEventListener('click', () => {
+          const open = catBody.classList.toggle('open');
+          catChevron.classList.toggle('open', open);
+        });
 
-        const label = document.createElement('span');
-        label.className = 'layer-label';
-        label.textContent = layer.label;
+        cat.metrics.forEach(m => {
+          const row = document.createElement('div');
+          row.className = 'choro-metric';
+          row.dataset.value = m.value;
 
-        row.appendChild(cb);
-        row.appendChild(swatch);
-        row.appendChild(label);
+          const mLabel = document.createElement('span');
+          mLabel.className = 'choro-metric-label';
+          mLabel.textContent = m.label;
 
-        // Source badge
-        if (layer.source) {
           const badge = document.createElement('span');
-          badge.className = 'source-badge';
-          badge.textContent = layer.source === 'gov-sg' ? 'SG' : '\uD83C\uDF10';
+          badge.className = 'type-badge ' + m.badge;
+          badge.textContent = m.badge.toUpperCase();
+
+          row.appendChild(mLabel);
           row.appendChild(badge);
-        }
 
-        body.appendChild(row);
+          row.addEventListener('click', () => {
+            choroBody.querySelectorAll('.choro-metric.active').forEach(el => el.classList.remove('active'));
+            row.classList.add('active');
+            updateChoropleth(m.value);
+          });
 
-        layerState[layer.id] = { dataSource: null, loaded: false, visible: cb.checked };
+          catBody.appendChild(row);
+        });
+
+        choroBody.appendChild(catHeader);
+        choroBody.appendChild(catBody);
       });
+
+      body.appendChild(choroHeader);
+      body.appendChild(choroBody);
+
+      // --- Data catalogue link ---
+      const catLink = document.createElement('a');
+      catLink.className = 'catalogue-link';
+      catLink.href = '../data-catalogue.html';
+      catLink.target = '_blank';
+      catLink.textContent = '\uD83D\uDCC2 Data Catalogue & Downloads';
+      body.appendChild(catLink);
     }
 
     async function onLayerToggle(id, visible) {
@@ -862,33 +1055,61 @@
     // ---------------------------------------------------------------
     // Choropleth heatmap
     // ---------------------------------------------------------------
+    const CHOROPLETH_CATEGORIES = [
+      {
+        name: 'Demographics & Housing',
+        metrics: [
+          { value: 'population_density', label: 'Population density', unit: '/km²', fmt: 'int', badge: 'rate' },
+          { value: 'elderly_pct', label: 'Elderly share (65+)', unit: '%', fmt: 'pct', derived: true, badge: 'rate' },
+          { value: 'dwelling_density', label: 'Dwelling density', unit: '/km²', fmt: 'int', badge: 'rate' },
+          { value: 'total_dwelling_units', label: 'Dwelling units', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'hdb_count', label: 'HDB blocks', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'avg_hdb_year', label: 'Avg HDB year built', unit: '', fmt: 'int', badge: 'rate' },
+          { value: 'resale_median_price', label: 'Resale flat price', unit: '', fmt: 'price', badge: 'rate' },
+          { value: 'resale_transaction_count', label: 'Resale transactions', unit: '', fmt: 'int', badge: 'cnt' },
+        ]
+      },
+      {
+        name: 'Amenities & Infrastructure',
+        metrics: [
+          { value: 'amenity_density', label: 'Amenity density', unit: '/km²', fmt: 'float', badge: 'rate' },
+          { value: 'mrt_station_count', label: 'MRT stations', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'cycling_path_km', label: 'Cycling paths', unit: ' km', fmt: 'float', badge: 'cnt' },
+          { value: 'park_connector_km', label: 'Park connectors', unit: ' km', fmt: 'float', badge: 'cnt' },
+        ]
+      },
+      {
+        name: 'Buildings',
+        metrics: [
+          { value: 'building_count', label: 'Total buildings', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'mean_height_m', label: 'Avg building height', unit: ' m', fmt: 'float', badge: 'rate' },
+          { value: 'max_height_m', label: 'Max building height', unit: ' m', fmt: 'float', badge: 'cnt' },
+        ]
+      },
+      {
+        name: 'Remote Sensing',
+        metrics: [
+          { value: 'ndvi_mean', label: 'Vegetation (NDVI)', unit: '', fmt: 'float', badge: 'sat' },
+          { value: 'ndbi_mean', label: 'Built-up (NDBI)', unit: '', fmt: 'float', badge: 'sat' },
+          { value: 'lst_mean_c', label: 'Land Surface Temp', unit: ' °C', fmt: 'float', badge: 'sat' },
+          { value: 'canopy_cover_pct', label: 'Tree canopy cover', unit: '%', fmt: 'float', badge: 'sat' },
+          { value: 'ghsl_height_mean', label: 'GHSL building height', unit: ' m', fmt: 'float', badge: 'sat' },
+          { value: 'dsm_mean', label: 'Surface elevation', unit: ' m', fmt: 'float', badge: 'sat' },
+        ]
+      },
+      {
+        name: 'Walkability',
+        metrics: [
+          { value: 'walkability_index', label: 'Walkability (BEH-NWI)', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'intersection_density', label: 'Intersection density', unit: '/km\u00B2', fmt: 'int', badge: 'idx' },
+          { value: 'transit_access_score', label: 'Transit access', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'destination_accessibility', label: 'Destination access', unit: '', fmt: 'float', badge: 'idx' },
+        ]
+      },
+    ];
     const CHOROPLETH_METRICS = [
       { value: '', label: 'Off' },
-      { value: 'population_density', label: 'Population density', unit: '/km²', fmt: 'int' },
-      { value: 'elderly_pct', label: 'Elderly share (65+)', unit: '%', fmt: 'pct', derived: true },
-      { value: 'amenity_density', label: 'Amenity density', unit: '/km²', fmt: 'float' },
-      { value: 'mrt_station_count', label: 'MRT stations', unit: '', fmt: 'int' },
-      { value: 'cycling_path_km', label: 'Cycling paths', unit: ' km', fmt: 'float' },
-      { value: 'park_connector_km', label: 'Park connectors', unit: ' km', fmt: 'float' },
-      { value: 'resale_median_price', label: 'Resale flat price', unit: '', fmt: 'price' },
-      { value: 'mean_height_m', label: 'Avg building height', unit: ' m', fmt: 'float' },
-      { value: 'hdb_count', label: 'HDB blocks', unit: '', fmt: 'int' },
-      { value: 'building_count', label: 'Total buildings', unit: '', fmt: 'int' },
-      { value: 'max_height_m', label: 'Max building height', unit: ' m', fmt: 'float' },
-      { value: 'resale_transaction_count', label: 'Resale transactions', unit: '', fmt: 'int' },
-      { value: 'avg_hdb_year', label: 'Avg HDB year built', unit: '', fmt: 'int' },
-      { value: 'total_dwelling_units', label: 'Dwelling units', unit: '', fmt: 'int' },
-      { value: 'dwelling_density', label: 'Dwelling density', unit: '/km²', fmt: 'int' },
-      { value: 'ndvi_mean', label: 'Vegetation (NDVI)', unit: '', fmt: 'float' },
-      { value: 'ndbi_mean', label: 'Built-up (NDBI)', unit: '', fmt: 'float' },
-      { value: 'lst_mean_c', label: 'Land Surface Temp', unit: ' °C', fmt: 'float' },
-      { value: 'canopy_cover_pct', label: 'Tree canopy cover', unit: '%', fmt: 'float' },
-      { value: 'ghsl_height_mean', label: 'GHSL building height', unit: ' m', fmt: 'float' },
-      { value: 'dsm_mean', label: 'Surface elevation', unit: ' m', fmt: 'float' },
-      { value: 'intersection_density', label: 'Intersection density', unit: '/km\u00B2', fmt: 'int' },
-      { value: 'transit_access_score', label: 'Transit access', unit: '', fmt: 'float' },
-      { value: 'destination_accessibility', label: 'Destination access', unit: '', fmt: 'float' },
-      { value: 'walkability_index', label: 'Walkability (BEH-NWI)', unit: '', fmt: 'float' },
+      ...CHOROPLETH_CATEGORIES.flatMap(cat => cat.metrics),
     ];
 
     const RAMP_COLORS = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];
