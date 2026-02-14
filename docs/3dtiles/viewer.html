@@ -74,7 +74,7 @@
   <div id="cesiumContainer"></div>
   <div id="info">
     <h3 id="info-title">Queenstown 3D Buildings</h3>
-    <div id="info-subtitle">8,671 buildings | 30 layers | 30 metrics | Click for details</div>
+    <div id="info-subtitle">8,671 buildings | 27 layers | 30 metrics | Click for details</div>
     <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light &#9654;</button>
     <div class="legend">
       <div style="color:#999; margin-bottom:2px;">Building height</div>
@@ -139,31 +139,31 @@
         label: 'Queenstown',
         camera: [103.7885, 1.2870, 2000],
         rasterBounds: [103.7502, 1.2550, 103.8166, 1.3188],
-        layerCounts: { hawker: 9, supermarket: 19, mrt: 26, parks: 9, parkfac: 370, parkconn: 36, nature: 12, abcwaters: 5, nptracks: 1559, cycling: 110, cc: 4, gym: 4, preschool: 81, chas: 43, sportfac: 1, hdb: 308, heightctl: 7, streetnet: 3788, walk_idx: 2178, walk_intdens: 2178, walk_transit: 2178, walk_dest: 2178, rs_grid: 2394 },
+        layerCounts: { hawker: 9, supermarket: 19, mrt: 26, parks: 9, parkfac: 370, parkconn: 36, nature: 12, abcwaters: 5, nptracks: 1559, cycling: 110, cc: 4, gym: 4, preschool: 81, chas: 43, sportfac: 1, hdb: 308, heightctl: 7, streetnet: 3788, walk_intdens: 2178, rs_grid: 2394 },
       },
       bishan: {
         label: 'Bishan',
         camera: [103.8395, 1.3550, 2000],
         rasterBounds: [103.8185, 1.3420, 103.8604, 1.3680],
-        layerCounts: { hawker: 1, supermarket: 8, mrt: 16, parks: 18, parkfac: 173, parkconn: 10, nature: 20, abcwaters: 3, nptracks: 481, cycling: 160, cc: 4, gym: 5, preschool: 50, chas: 20, sportfac: 2, hdb: 1, heightctl: 0, streetnet: 1363, walk_idx: 769, walk_intdens: 769, walk_transit: 769, walk_dest: 769, rs_grid: 840 },
+        layerCounts: { hawker: 1, supermarket: 8, mrt: 16, parks: 18, parkfac: 173, parkconn: 10, nature: 20, abcwaters: 3, nptracks: 481, cycling: 160, cc: 4, gym: 5, preschool: 50, chas: 20, sportfac: 2, hdb: 1, heightctl: 0, streetnet: 1363, walk_intdens: 769, rs_grid: 840 },
       },
       outram: {
         label: 'Outram',
         camera: [103.8423, 1.2817, 1500],
         rasterBounds: [103.8348, 1.2742, 103.8497, 1.2892],
-        layerCounts: { hawker: 5, supermarket: 7, mrt: 16, parks: 5, parkfac: 11, parkconn: 0, nature: 5, abcwaters: 0, nptracks: 192, cycling: 27, cc: 2, gym: 19, preschool: 16, chas: 16, sportfac: 1, hdb: 1, heightctl: 0, streetnet: 711, walk_idx: 135, walk_intdens: 135, walk_transit: 135, walk_dest: 135, rs_grid: 175 },
+        layerCounts: { hawker: 5, supermarket: 7, mrt: 16, parks: 5, parkfac: 11, parkconn: 0, nature: 5, abcwaters: 0, nptracks: 192, cycling: 27, cc: 2, gym: 19, preschool: 16, chas: 16, sportfac: 1, hdb: 1, heightctl: 0, streetnet: 711, walk_intdens: 135, rs_grid: 175 },
       },
       tampines: {
         label: 'Tampines',
         camera: [103.9549, 1.3450, 2000],
         rasterBounds: [103.9250, 1.3141, 103.9848, 1.3758],
-        layerCounts: { hawker: 3, supermarket: 25, mrt: 27, parks: 13, parkfac: 194, parkconn: 19, nature: 13, abcwaters: 3, nptracks: 449, cycling: 471, cc: 6, gym: 4, preschool: 142, chas: 81, sportfac: 1, hdb: 19, heightctl: 0, streetnet: 4144, walk_idx: 2085, walk_intdens: 2085, walk_transit: 2085, walk_dest: 2085, rs_grid: 2230 },
+        layerCounts: { hawker: 3, supermarket: 25, mrt: 27, parks: 13, parkfac: 194, parkconn: 19, nature: 13, abcwaters: 3, nptracks: 449, cycling: 471, cc: 6, gym: 4, preschool: 142, chas: 81, sportfac: 1, hdb: 19, heightctl: 0, streetnet: 4144, walk_intdens: 2085, rs_grid: 2230 },
       },
       newton: {
         label: 'Newton',
         camera: [103.8377, 1.3085, 1500],
         rasterBounds: [103.8267, 1.2996, 103.8487, 1.3174],
-        layerCounts: { hawker: 1, supermarket: 0, mrt: 3, parks: 1, parkfac: 2, parkconn: 0, nature: 1, abcwaters: 0, nptracks: 0, cycling: 0, cc: 1, gym: 1, preschool: 7, chas: 3, sportfac: 0, hdb: 0, heightctl: 0, streetnet: 838, walk_idx: 210, walk_intdens: 210, walk_transit: 210, walk_dest: 210, rs_grid: 265 },
+        layerCounts: { hawker: 1, supermarket: 0, mrt: 3, parks: 1, parkfac: 2, parkconn: 0, nature: 1, abcwaters: 0, nptracks: 0, cycling: 0, cc: 1, gym: 1, preschool: 7, chas: 3, sportfac: 0, hdb: 0, heightctl: 0, streetnet: 838, walk_intdens: 210, rs_grid: 265 },
       },
     };
 
@@ -363,7 +363,7 @@
 
       // 7. Update info panel
       document.getElementById('info-title').textContent = dist.label + ' 3D Buildings';
-      document.getElementById('info-subtitle').textContent = 'Loading... | 30 layers | 30 metrics | Click for details';
+      document.getElementById('info-subtitle').textContent = 'Loading... | 27 layers | 30 metrics | Click for details';
 
       // 8. Reload boundary + subzones
       loadBoundary();
@@ -457,13 +457,11 @@
           html += `Canopy cover: ${gv('canopy_cover_pct')}%<br>`;
           html += `GHSL height: ${gv('ghsl_height_mean')} m<br>`;
           html += `DSM: ${gv('dsm_mean')} m | DEM: ${gv('dem_mean')} m<br>`;
-        } else if (gv('walkability') !== null && gv('int_density') !== null) {
-          // Walkability grid cell
+        } else if (gv('int_density') !== null && gv('cell_id') !== null && gv('pop_density') !== null) {
+          // Intersection density grid cell
           html = `<b>Grid cell #${gv('cell_id')}</b> (100m)<br>`;
-          html += `Walkability: ${gv('walkability')}<br>`;
           html += `Intersection density: ${gv('int_density')}/km²<br>`;
-          html += `Transit access: ${gv('transit_access')}<br>`;
-          html += `Destination access: ${gv('dest_access')}<br>`;
+          html += `<span style="font-size:0.85em;color:#aaa">Walk-network nodes with degree≥3 within 300m radius</span><br>`;
         } else if (gv('betweenness') !== null) {
           // Street network edge
           const name = gv('name') || '(unnamed road)';
@@ -533,11 +531,8 @@
       { id: 'heightctl', label: 'Height control zones', file: '../geo/gov-sg/queenstown-ura-height-control.geojson', color: '#ff9800', group: 'Planning', type: 'polygon', source: 'gov-sg' },
       // Street Network (global)
       { id: 'streetnet', label: 'Street network', file: '../geo/global/queenstown-street-network.geojson', color: '#00bcd4', group: 'Street Network', type: 'line', source: 'global' },
-      // Walkability heatmaps (global)
-      { id: 'walk_idx', label: 'Walkability grid', file: '../geo/global/queenstown-walkability-grid.geojson', color: '#4caf50', group: 'Street Network', type: 'polygon', source: 'global', colorField: 'walkability' },
+      // Intersection density grid (global) — 100m cells, counts walk-network nodes with degree≥3 within 300m radius
       { id: 'walk_intdens', label: 'Intersection density grid', file: '../geo/global/queenstown-walkability-grid.geojson', color: '#2196f3', group: 'Street Network', type: 'polygon', source: 'global', colorField: 'int_density' },
-      { id: 'walk_transit', label: 'Transit access grid', file: '../geo/global/queenstown-walkability-grid.geojson', color: '#9c27b0', group: 'Street Network', type: 'polygon', source: 'global', colorField: 'transit_access' },
-      { id: 'walk_dest', label: 'Destination access grid', file: '../geo/global/queenstown-walkability-grid.geojson', color: '#ff9800', group: 'Street Network', type: 'polygon', source: 'global', colorField: 'dest_access' },
       // Remote Sensing — raster image overlays (global)
       { id: 'rs_ndvi', label: 'NDVI (vegetation)', rasterFile: '../geo/global/rasters/queenstown-ndvi.png', color: '#4caf50', group: 'Remote Sensing', type: 'raster', source: 'global' },
       { id: 'rs_lst', label: 'Land surface temp', rasterFile: '../geo/global/rasters/queenstown-lst.png', color: '#f44336', group: 'Remote Sensing', type: 'raster', source: 'global' },
@@ -984,10 +979,7 @@
             const maxVal = Math.max(...values);
             const range = maxVal - minVal || 1;
             const ramps = {
-              '#4caf50': ['#e8f5e9','#a5d6a7','#66bb6a','#388e3c','#2e7d32','#1b5e20'],
               '#2196f3': ['#e3f2fd','#90caf9','#42a5f5','#1e88e5','#1565c0','#0d47a1'],
-              '#9c27b0': ['#f3e5f5','#ce93d8','#ab47bc','#8e24aa','#6a1b9a','#4a148c'],
-              '#ff9800': ['#fff3e0','#ffcc80','#ffa726','#f57c00','#e65100','#bf360c'],
             };
             const ramp = ramps[layer.color] || ['#f7f7f7','#d9d9d9','#bdbdbd','#969696','#636363','#252525'];
             const alpha = 0.55;
@@ -1263,20 +1255,8 @@
           { color: '#00bcd4', label: '≤ 0.002 (low)' },
         ]
       },
-      walk_idx: {
-        title: 'Walkability index',
-        type: 'discrete',
-        items: [
-          { color: '#1b5e20', label: 'High' },
-          { color: '#2e7d32', label: '' },
-          { color: '#388e3c', label: '' },
-          { color: '#66bb6a', label: '' },
-          { color: '#a5d6a7', label: '' },
-          { color: '#e8f5e9', label: 'Low' },
-        ]
-      },
       walk_intdens: {
-        title: 'Intersection density',
+        title: 'Intersection density (nodes with degree≥3 within 300m)',
         type: 'discrete',
         items: [
           { color: '#0d47a1', label: 'High' },
@@ -1285,30 +1265,6 @@
           { color: '#42a5f5', label: '' },
           { color: '#90caf9', label: '' },
           { color: '#e3f2fd', label: 'Low' },
-        ]
-      },
-      walk_transit: {
-        title: 'Transit access',
-        type: 'discrete',
-        items: [
-          { color: '#4a148c', label: 'High' },
-          { color: '#6a1b9a', label: '' },
-          { color: '#8e24aa', label: '' },
-          { color: '#ab47bc', label: '' },
-          { color: '#ce93d8', label: '' },
-          { color: '#f3e5f5', label: 'Low' },
-        ]
-      },
-      walk_dest: {
-        title: 'Destination access',
-        type: 'discrete',
-        items: [
-          { color: '#bf360c', label: 'High' },
-          { color: '#e65100', label: '' },
-          { color: '#f57c00', label: '' },
-          { color: '#ffa726', label: '' },
-          { color: '#ffcc80', label: '' },
-          { color: '#fff3e0', label: 'Low' },
         ]
       },
       rs_ndvi: {
