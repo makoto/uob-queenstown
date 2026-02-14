@@ -6,7 +6,7 @@ Geospatial analysis of perceived liveability across five Singapore planning dist
 
 ## Links
 
-- [Data Guide (GitHub Pages)](https://makoto.github.io/uob-queenstown/)
-- [3D Buildings Viewer](https://makoto.github.io/uob-queenstown/3dtiles/viewer.html)
-- [Data Catalogue](https://makoto.github.io/uob-queenstown/data-catalogue.html)
-- [Tech Catalogue](https://makoto.github.io/uob-queenstown/tech-catalogue.html)
+- [Data Guide (GitHub Pages)](https://makoto.github.io/uob-sg-guide/)
+- [3D Buildings Viewer](https://makoto.github.io/uob-sg-guide/3dtiles/viewer.html)
+- [Data Catalogue](https://makoto.github.io/uob-sg-guide/data-catalogue.html)
+- [Tech Catalogue](https://makoto.github.io/uob-sg-guide/tech-catalogue.html)
