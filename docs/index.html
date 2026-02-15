@@ -26,29 +26,13 @@
   </div>
 
   <div class="card">
-    <h3><a href="3dtiles/viewer.html">3D Buildings Viewer</a></h3>
-    <p>Multi-district viewer with district selector (Queenstown, Bishan, Outram, Tampines, Newton). Extruded 3D buildings for all 5 districts (Queenstown: 8,671; Bishan: 3,766; Outram: 1,589; Tampines: 2,910; Newton: 759) with height-based colour coding, 27 toggleable overlays in 10 collapsible groups with feature counts per layer, provenance filter (Gov.sg / Global), and a categorized choropleth accordion with 33 subzone-level metrics across 5 sub-categories (with type badges: CNT/RATE/IDX/SAT). All gov-sg layers available for all districts. Street network, remote sensing (subzone-level + RS grid + raster PNGs), and walkability available for all 5 districts. Built with CesiumJS and 3D Tiles.</p>
-    <div class="details">
-      <p><strong>District selector:</strong> Switch between Queenstown, Bishan, Outram, Tampines, and Newton. Each district loads its own boundary, subzones, gov-sg layers, 3D building tileset, and choropleth data. Buildings, street network, remote sensing (subzone-level + RS grid + raster PNGs), and walkability (scores + grids) are available for all 5 districts. Missing data is handled gracefully.</p>
-      <p><strong>Data sources:</strong> OpenStreetMap building footprints (Overpass API) enriched with HDB property records (data.gov.sg). 308 HDB blocks matched by block number + street name.</p>
-      <table>
-        <tr><th>Height source</th><th>Count</th><th>Method</th></tr>
-        <tr><td>Measured (OSM tag)</td><td>232 (2.7%)</td><td>Most reliable</td></tr>
-        <tr><td>Building levels</td><td>2,284 (26.3%)</td><td>Storeys &times; 3m</td></tr>
-        <tr><td>HDB floor levels</td><td>258 (3.0%)</td><td>Max floor &times; 3m</td></tr>
-        <tr><td>Estimated default</td><td>5,897 (68.0%)</td><td>By building type</td></tr>
-      </table>
-      <p style="margin-top:8px"><strong>Height range:</strong> 3m &ndash; 183m (mean 14.2m, median 10m). Tallest: mTower (183m), SkyVille @ Dawson (141m, 47 storeys).</p>
-      <p><strong>Click any building</strong> to see: name, type, height, storeys, data source, and HDB year completed.</p>
-      <p><strong>HDB blocks layer:</strong> 308 HDB dots coloured by construction era &mdash; red (pre-1980), orange (1980&ndash;1999), green (2000+). Click shows year completed, dwelling units, and use flags.</p>
-      <p><strong>Height control zones:</strong> Semi-transparent URA polygons showing storey limits from the Master Plan.</p>
-      <p><strong>Street network layer:</strong> Road edges from OSMnx drive network, coloured by betweenness centrality to highlight key corridors, with dynamic legend. Available for all 5 districts (Queenstown: 3,788; Bishan: 1,363; Outram: 711; Tampines: 4,144; Newton: 838 edges).</p>
-      <p><strong>Intersection density grid:</strong> 100m grid cells coloured by intersection density, computed via spatial kernel method (counts walk-network nodes with degree&ge;3 within a 300m radius, divided by circle area). Available for all 5 districts (Queenstown: 2,178; Bishan: 769; Outram: 135; Tampines: 2,085; Newton: 210 cells). Click a cell to see the intersection density value and method description.</p>
-      <p><strong>Remote sensing layers:</strong> Subzone-level remote sensing data available for all 5 districts (used by choropleth). Pixel-level raster overlays (NDVI, LST, NDBI, canopy cover) and 100m RS grid now available for all 5 districts (Queenstown: 2,394 cells; Bishan: 840; Outram: 175; Tampines: 2,230; Newton: 265). Each RS grid cell includes 6 properties: NDVI, NDBI, LST, canopy %, DEM elevation (SRTM 30m), and slope. The RS grid features a <strong>colour mode selector</strong> with 5 toggleable modes (NDVI, DEM, Slope, LST, NDBI) displayed as small toggle buttons below the checkbox. Clicking a mode re-colours all grid cells using a 6-step dynamic colour ramp with min/max values from the data. The legend updates with a gradient bar showing the current field name and value range. Default mode is NDVI.</p>
-      <!-- Mapillary images layer removed from viewer -->
+    <h3><a href="viewer-deckgl.html">Map Viewer</a></h3>
+    <p>Multi-district viewer with district selector (Queenstown, Bishan, Outram, Tampines, Newton). Extruded 3D buildings for all 5 districts with height-based colour coding, 33 toggleable overlays in 10 collapsible groups with feature counts per layer, provenance filter (Gov.sg / Global), and a categorized choropleth accordion with 39 subzone-level metrics across 6 sub-categories (with type badges: CNT/RATE/IDX/SAT). Includes UNA gravity accessibility layers for Queenstown. Built with deck.gl + MapLibre GL JS. GPU-accelerated rendering, ~700 KB bundle, free CARTO basemaps (Dark, Light, Voyager). No API token needed.</p>
+  </div>
 
-      <p style="margin-top:8px"><strong>Choropleth heatmap:</strong> A collapsible accordion in the Layers panel organizes 33 metrics into 5 sub-categories (Demographics &amp; Housing, Amenities &amp; Infrastructure, Buildings, Remote Sensing, Walkability). Each metric has a coloured type badge (CNT/RATE/IDX/SAT). Click a metric to colour subzones; use the &ldquo;Off&rdquo; button to deactivate. Metrics include population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density, plus 5 green/blue infrastructure metrics: green space coverage (%), green space area (km&sup2;), ABC Waters area (km&sup2;), NParks tracks (km), and sport facilities, plus 6 remote sensing indicators: Vegetation (NDVI), Built-up (NDBI), Land Surface Temp, Tree canopy cover, GHSL building height, and Surface elevation, plus 7 walkability metrics: Intersection density, Transit access, Destination access, Walkability (BEH-NWI), Walkability (slope-adjusted), Transit access (slope), and Destination access (slope). The 3 slope-adjusted metrics use Tobler&rsquo;s hiking function with SRTM elevation to penalise steep gradients. Uses a 5-step YlOrRd colour ramp with dynamic legend.</p>
-    </div>
+  <div class="card">
+    <h3><a href="3dtiles/viewer.html">3D Buildings Viewer (legacy)</a></h3>
+    <p>Original CesiumJS-based viewer with 3D Tiles. 27 toggleable overlays, 33 choropleth metrics, satellite basemap via Cesium Ion. Heavier (~3 MB bundle) but supports satellite imagery and 3D terrain. Built with CesiumJS and 3D Tiles.</p>
   </div>
 
   <div class="card">

@@ -49,7 +49,10 @@
         "intersection_density": 301.3,
         "transit_access_score": 0.8882,
         "destination_accessibility": 0.7659,
-        "walkability_index": -1.4408
+        "walkability_index": -1.4408,
+        "transit_access_slope": null,
+        "dest_access_slope": null,
+        "walkability_slope": null
       },
       "geometry": {
         "type": "Polygon",
@@ -667,7 +670,10 @@
         "intersection_density": 260.1,
         "transit_access_score": 1.3457,
         "destination_accessibility": 1.2933,
-        "walkability_index": -0.4899
+        "walkability_index": -0.4899,
+        "transit_access_slope": null,
+        "dest_access_slope": null,
+        "walkability_slope": null
       },
       "geometry": {
         "type": "Polygon",
@@ -1201,7 +1207,10 @@
         "intersection_density": 400.1,
         "transit_access_score": 3.3485,
         "destination_accessibility": 1.9152,
-        "walkability_index": 3.6074
+        "walkability_index": 3.6074,
+        "transit_access_slope": null,
+        "dest_access_slope": null,
+        "walkability_slope": null
       },
       "geometry": {
         "type": "Polygon",
@@ -1683,7 +1692,10 @@
         "intersection_density": 440.0,
         "transit_access_score": 1.0931,
         "destination_accessibility": 1.0412,
-        "walkability_index": 1.7079
+        "walkability_index": 1.7079,
+        "transit_access_slope": null,
+        "dest_access_slope": null,
+        "walkability_slope": null
       },
       "geometry": {
         "type": "Polygon",
@@ -2825,7 +2837,10 @@
         "intersection_density": 304.9,
         "transit_access_score": 1.2718,
         "destination_accessibility": 1.2552,
-        "walkability_index": 0.4696
+        "walkability_index": 0.4696,
+        "transit_access_slope": null,
+        "dest_access_slope": null,
+        "walkability_slope": null
       },
       "geometry": {
         "type": "Polygon",
@@ -3383,7 +3398,10 @@
         "intersection_density": 106.0,
         "transit_access_score": 0.5743,
         "destination_accessibility": 1.2295,
-        "walkability_index": -3.8543
+        "walkability_index": -3.8543,
+        "transit_access_slope": null,
+        "dest_access_slope": null,
+        "walkability_slope": null
       },
       "geometry": {
         "type": "Polygon",

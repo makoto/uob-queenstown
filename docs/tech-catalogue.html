@@ -53,7 +53,7 @@
           <li><a href="#py-3dtiles">3D Tiles Generation</a></li>
         </ul>
       </li>
-      <li><a href="#frontend">Frontend / Viewer</a></li>
+      <li><a href="#frontend">Frontend / Viewers</a></li>
       <li><a href="#apis">APIs &amp; Cloud Services</a></li>
       <li><a href="#formats">Data Formats</a></li>
       <li><a href="#ci-cd">CI/CD &amp; Deployment</a></li>
@@ -80,9 +80,12 @@ Google Earth ──┤── src/fetch_global_layers.py ────────
 Engine ────────┘                                                 docs/geo/global/rasters/*.png
                                src/generate_walkability.py ────→ docs/geo/global/{district}-walkability*.json/geojson
 
-                                            ┌──────────────────────────────┐
-All GeoJSON + PNG + 3D Tiles ──────────────→│  CesiumJS Viewer (viewer.html) │
-                                            └──────────────────────────────┘
+                                            ┌──────────────────────────────────────┐
+All GeoJSON + PNG + 3D Tiles ──────────────→│ CesiumJS Viewer (3dtiles/viewer.html)  │
+                                            └──────────────────────────────────────┘
+                                            ┌──────────────────────────────────────┐
+All GeoJSON + PNG ─────────────────────────→│ deck.gl Viewer (viewer-deckgl.html)    │
+                                            └──────────────────────────────────────┘
                                                         │
                                             GitHub Actions ──→ GitHub Pages
   </div>
@@ -183,18 +186,15 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
 
   <hr>
 
-  <h2 id="frontend">Frontend / Viewer</h2>
+  <h2 id="frontend">Frontend / Viewers</h2>
+
+  <h3>CesiumJS Viewer (<code>docs/3dtiles/viewer.html</code>)</h3>
   <table>
     <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
     <tr>
       <td><a href="https://cesium.com/platform/cesiumjs/">CesiumJS</a></td>
       <td>1.124</td>
       <td>3D geospatial viewer: renders 3D Tiles (extruded buildings), GeoJSON overlays, raster image overlays (<code>SingleTileImageryProvider</code>), terrain, and basemaps. Handles camera, picking, and entity display.</td>
-    </tr>
-    <tr>
-      <td>HTML / CSS / JavaScript</td>
-      <td>ES6+</td>
-      <td>Single-page viewer app. No build tools, no frameworks &mdash; plain vanilla JS loaded from CDN.</td>
     </tr>
     <tr>
       <td><a href="https://carto.com/basemaps/">CARTO Basemaps</a></td>
@@ -213,7 +213,38 @@ All GeoJSON + PNG + 3D Tiles ──────────────→│  C
     </tr>
   </table>
 
-  <h3>Viewer features powered by CesiumJS</h3>
+  <h3>deck.gl Viewer (<code>docs/viewer-deckgl.html</code>)</h3>
+  <p class="section-note">Lightweight alternative viewer. No Cesium Ion token required. Buildings extruded from GeoJSON (no 3D Tiles/B3DM). Same 33 layers plus walkability grid and 5 UNA gravity layers; 39 choropleth metrics.</p>
+  <table>
+    <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    <tr>
+      <td><a href="https://deck.gl/">deck.gl</a></td>
+      <td>9.x</td>
+      <td>GPU-accelerated WebGL2 rendering of GeoJSON layers, extruded building polygons (<code>GeoJsonLayer</code>), bitmap raster overlays (<code>BitmapLayer</code>), text labels (<code>TextLayer</code>), and choropleth fills. ~700 KB CDN bundle.</td>
+    </tr>
+    <tr>
+      <td><a href="https://maplibre.org/maplibre-gl-js/">MapLibre GL JS</a></td>
+      <td>4.x</td>
+      <td>Vector basemap rendering (CARTO GL styles: dark-matter, positron, voyager). Open-source fork of Mapbox GL JS. No access token required with CARTO basemaps.</td>
+    </tr>
+    <tr>
+      <td><a href="https://carto.com/basemaps/">CARTO GL Basemaps</a></td>
+      <td>&mdash;</td>
+      <td>Vector basemap styles for MapLibre: Dark (dark-matter-gl-style), Light (positron-gl-style), Voyager (voyager-gl-style). Free tier, OpenStreetMap-based.</td>
+    </tr>
+  </table>
+
+  <h3>Common</h3>
+  <table>
+    <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    <tr>
+      <td>HTML / CSS / JavaScript</td>
+      <td>ES6+</td>
+      <td>Single-page viewer apps. No build tools, no frameworks &mdash; plain vanilla JS loaded from CDN.</td>
+    </tr>
+  </table>
+
+  <h3>CesiumJS viewer features</h3>
   <table>
     <tr><th>Feature</th><th>CesiumJS API</th></tr>
     <tr><td>3D building rendering</td><td><code>Cesium3DTileset</code> + <code>Cesium3DTileStyle</code> (height-based colour conditions)</td></tr>

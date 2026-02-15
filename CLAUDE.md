@@ -99,7 +99,7 @@ Files are organised into subdirectories by data provenance. All filenames use `{
 
 ### Tech Catalogue (`docs/tech-catalogue.html`)
 
-Documents all technologies, libraries, and frameworks used in the project: Python geospatial stack (Shapely, GeoPandas, OSMnx, NetworkX, GEE, ZenSVI, py3dtiles, pyproj, mapbox_earcut, NumPy), frontend (CesiumJS, CARTO basemaps, OpenTopoMap, Bing Maps satellite via Cesium Ion), APIs (GEE, Mapillary, Overpass, Cesium ion), data formats (GeoJSON, CSV, 3D Tiles, PNG), CI/CD (GitHub Actions, GitHub Pages), script reference, and environment setup.
+Documents all technologies, libraries, and frameworks used in the project: Python geospatial stack (Shapely, GeoPandas, OSMnx, NetworkX, GEE, ZenSVI, py3dtiles, pyproj, mapbox_earcut, NumPy), frontend (CesiumJS, deck.gl, MapLibre GL JS, CARTO basemaps, OpenTopoMap, Bing Maps satellite via Cesium Ion), APIs (GEE, Mapillary, Overpass, Cesium ion), data formats (GeoJSON, CSV, 3D Tiles, PNG), CI/CD (GitHub Actions, GitHub Pages), script reference, and environment setup.
 
 ### Glossary & Data Dictionary (`docs/glossary.html`)
 
@@ -127,3 +127,19 @@ CesiumJS-based viewer with multi-district support:
 - Basemap toggle cycling through 4 options: Dark (CARTO dark_all, default), Light (CARTO light_all), Satellite (Bing Maps via Cesium Ion asset 2, lazy-loaded), Terrain (OpenTopoMap)
 - **Choropleth heatmap**: collapsible "Choropleth" accordion section containing 5 sub-categories: Demographics & Housing, Amenities & Infrastructure, Buildings, Remote Sensing, and Walkability. Each metric row shows a coloured type badge (CNT = count, RATE = rate/density, IDX = index/score, SAT = satellite-derived). Click a metric to activate it; an "Off" button at the top deactivates the choropleth. Internally, `CHOROPLETH_CATEGORIES` array (metrics derived via `flatMap`). 33 metrics total across the 5 sub-categories (YlOrRd 5-step ramp, alpha 0.55). Original 15 metrics: population density, elderly share, amenity density, MRT stations, cycling paths, park connectors, resale flat price, avg building height, HDB blocks, total buildings, max building height, resale transactions, avg HDB year built, dwelling units, dwelling density. Plus 5 green/blue infrastructure metrics in Amenities & Infrastructure: Green space coverage (%), Green space area (km2), ABC Waters area (km2), NParks tracks (km), Sport facilities. Plus 6 remote sensing metrics: Vegetation (NDVI), Built-up (NDBI), Land Surface Temp, Tree canopy cover, GHSL building height, Surface elevation. Plus 7 walkability metrics: Intersection density, Transit access, Destination access, Walkability (BEH-NWI), Walkability (slope-adjusted), Transit access (slope), Destination access (slope). The 3 slope-adjusted metrics use Tobler's hiking function with SRTM elevation to penalise steep gradients. Data sourced from `{district}-subzone-summary.geojson` (per-district), lazy-loaded and cached. Legend updates with formatted min/max per metric.
 - **Disabled Cesium widgets**: `navigationHelpButton`, `sceneModePicker`, and `fullscreenButton` are disabled to reduce UI clutter.
+
+### deck.gl Viewer (`docs/viewer-deckgl.html`)
+
+Lightweight alternative viewer using deck.gl + MapLibre GL JS. Located at `docs/viewer-deckgl.html` (not inside `3dtiles/`). The existing CesiumJS viewer is not modified; both viewers coexist.
+
+- **Stack**: deck.gl v9 CDN bundle (~700 KB) + MapLibre GL JS v4 for basemaps. No build tools, no Cesium Ion token required.
+- **Buildings**: Extruded natively from GeoJSON via `GeoJsonLayer` with `extruded: true` (no 3D Tiles/B3DM needed). Height-based colour coding matching the CesiumJS viewer.
+- **District selector** dropdown (Queenstown, Bishan, Outram, Tampines, Newton) with `switchDistrict()` function and `FlyToInterpolator` camera animation.
+- **33 toggleable layers** grouped by 10 collapsible categories (same as CesiumJS viewer): District, Food & Daily Needs, Transit, Green & Recreation, Active Mobility, Community, Housing, Planning, Street Network, Remote Sensing. Additionally includes a Walkability grid layer and 5 UNA gravity accessibility layers (when data available).
+- **Layer panel** (top-right): same UI structure as CesiumJS viewer -- collapsible groups with chevron indicators, feature counts per layer, zero-count dimming, provenance filter bar (Gov.sg / Global), source badges (SG / globe icon), RS grid colour mode selector (NDVI, DEM, Slope, LST, NDBI), and Data Catalogue footer link.
+- **39 choropleth metrics** in 6 sub-categories: Demographics & Housing (8), Amenities & Infrastructure (9), Buildings (3), Remote Sensing (6), Walkability (7), UNA Gravity (6). Same YlOrRd 5-step ramp with type badges (CNT/RATE/IDX/SAT). The 6 UNA Gravity metrics are additional compared to the CesiumJS viewer's 33.
+- **3 CARTO basemaps**: Dark (dark-matter, default), Light (positron), Voyager. No satellite option (no free token-less provider available).
+- **Data paths**: Relative to `docs/` -- e.g., `geo/queenstown-boundary.geojson`, `geo/global/queenstown-buildings.geojson`. The `layerFile()` helper swaps district names in paths.
+- **Raster overlays**: 4 satellite PNGs (NDVI, LST, NDBI, canopy) rendered via `BitmapLayer` with georeferenced bounds per district.
+- **Click interaction**: `onMapClick` handler with `buildPopupHtml()` for contextual popups (buildings, HDB, RS grid, walkability grid, street network, height control, choropleth, gravity layers).
+- **Lazy loading**: GeoJSON layers fetched on first checkbox toggle with URL-keyed cache (`dataCache`). Default layers (boundary, subzones, buildings) loaded on init.

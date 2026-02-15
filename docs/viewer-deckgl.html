@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Singapore District Viewer (deck.gl)</title>
+  <script src="https://unpkg.com/deck.gl@^9.0.0/dist.min.js"></script>
+  <script src="https://unpkg.com/maplibre-gl@^4.0.0/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@^4.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    #map { width: 100%; height: 100%; }
+    #info { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px 15px; border-radius: 5px; font-family: sans-serif; font-size: 13px; z-index: 1; }
+    #info h3 { margin: 0 0 5px 0; }
+    #picked { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: #0f0; padding: 10px 15px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 1; display: none; max-width: 400px; }
+    #basemap-toggle { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 3px 10px; font-family: sans-serif; font-size: 12px; cursor: pointer; margin-top: 6px; }
+    #basemap-toggle:hover { background: rgba(255,255,255,0.3); }
+    .legend { margin-top: 8px; font-size: 11px; line-height: 1.6; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-swatch { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    #layer-panel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 0; border-radius: 5px; font-family: sans-serif; font-size: 12px; z-index: 1; min-width: 220px; max-width: 280px; max-height: calc(100vh - 30px); overflow-y: auto; }
+    #layer-panel-header { padding: 8px 12px; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.15); }
+    #layer-panel-header:hover { background: rgba(255,255,255,0.1); border-radius: 5px 5px 0 0; }
+    #layer-panel-body { padding: 6px 0; }
+    .layer-group-title { color: #aaa; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 12px 2px; margin-top: 2px; }
+    .layer-group-header { color: #aaa; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 12px; margin-top: 2px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
+    .layer-group-header:hover { background: rgba(255,255,255,0.06); }
+    .layer-group-header .chevron { transition: transform 0.2s; display: inline-block; font-size: 8px; width: 8px; }
+    .layer-group-header .chevron.open { transform: rotate(90deg); }
+    .layer-group-header .group-label { flex: 1; }
+    .layer-group-header .group-count { color: #666; font-size: 9px; }
+    .layer-group-body { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+    .layer-group-body.open { max-height: 600px; }
+    .layer-row.zero-count { opacity: 0.35; }
+    .layer-row { display: flex; align-items: center; gap: 6px; padding: 3px 12px; cursor: pointer; }
+    .layer-row:hover { background: rgba(255,255,255,0.08); }
+    .layer-row input[type="checkbox"] { margin: 0; cursor: pointer; }
+    .layer-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .layer-label { flex: 1; }
+    .choro-cat-header { color: #999; font-size: 10px; padding: 4px 16px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; }
+    .choro-cat-header:hover { background: rgba(255,255,255,0.06); }
+    .choro-cat-header .chevron { font-size: 7px; transition: transform 0.2s; display: inline-block; width: 7px; }
+    .choro-cat-header .chevron.open { transform: rotate(90deg); }
+    .choro-cat-body { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+    .choro-cat-body.open { max-height: 400px; }
+    .choro-metric { display: flex; align-items: center; gap: 6px; padding: 3px 20px; cursor: pointer; font-size: 11px; }
+    .choro-metric:hover { background: rgba(255,255,255,0.08); }
+    .choro-metric.active { background: rgba(255,255,255,0.15); color: #ffcc00; }
+    .choro-metric-label { flex: 1; }
+    .choro-off-btn { display: block; width: calc(100% - 24px); margin: 4px 12px; padding: 3px 8px; background: rgba(255,255,255,0.1); color: #aaa; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 11px; cursor: pointer; text-align: center; }
+    .choro-off-btn:hover { background: rgba(255,255,255,0.18); }
+    .type-badge { font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 2px; flex-shrink: 0; letter-spacing: 0.3px; }
+    .type-badge.cnt { background: rgba(255,152,0,0.3); color: #ffb74d; }
+    .type-badge.rate { background: rgba(76,175,80,0.3); color: #81c784; }
+    .type-badge.idx { background: rgba(33,150,243,0.3); color: #64b5f6; }
+    .type-badge.sat { background: rgba(156,39,176,0.3); color: #ce93d8; }
+    .rs-grid-mode { display: flex; gap: 3px; padding: 2px 12px 4px 30px; flex-wrap: wrap; }
+    .rs-grid-mode-btn { padding: 2px 6px; font-size: 9px; border: 1px solid rgba(255,255,255,0.25); border-radius: 2px; background: rgba(255,255,255,0.08); color: #aaa; cursor: pointer; user-select: none; }
+    .rs-grid-mode-btn.active { background: rgba(255,255,255,0.2); color: #fff; border-color: rgba(255,255,255,0.5); }
+    .rs-grid-mode-btn:hover { background: rgba(255,255,255,0.15); }
+    .catalogue-link { display: block; padding: 8px 12px; border-top: 1px solid rgba(255,255,255,0.1); color: #4fc3f7; text-decoration: none; font-size: 11px; text-align: center; }
+    .catalogue-link:hover { background: rgba(255,255,255,0.06); color: #81d4fa; }
+    .district-select { width: calc(100% - 24px); padding: 5px 6px; background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.35); border-radius: 3px; font-family: sans-serif; font-size: 12px; font-weight: bold; margin: 6px 12px 2px; box-sizing: border-box; cursor: pointer; }
+    .district-select option { background: #222; color: white; }
+    .provenance-bar { display: flex; gap: 6px; padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .provenance-btn { flex: 1; padding: 4px 8px; border: 1px solid rgba(255,255,255,0.25); border-radius: 3px; background: rgba(255,255,255,0.12); color: white; font-size: 11px; cursor: pointer; text-align: center; user-select: none; }
+    .provenance-btn.active { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+    .provenance-btn:hover { background: rgba(255,255,255,0.2); }
+    .source-badge { font-size: 9px; color: #888; margin-left: 4px; flex-shrink: 0; }
+    #choropleth-legend { margin: 4px 12px 6px; display: none; }
+    #choropleth-legend .gradient-bar { height: 10px; border-radius: 2px; background: linear-gradient(to right, #ffffb2, #fecc5c, #fd8d3c, #f03b20, #bd0026); }
+    #choropleth-legend .legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; margin-top: 2px; }
+    #layer-legend { margin-top: 8px; font-size: 11px; display: none; }
+    #layer-legend .layer-legend-section { margin-bottom: 6px; }
+    #layer-legend .layer-legend-title { color: #999; margin-bottom: 2px; }
+    #layer-legend .layer-legend-gradient { height: 10px; border-radius: 2px; margin-top: 2px; }
+    #layer-legend .layer-legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; margin-top: 2px; }
+    .deck-tooltip { font-family: sans-serif !important; font-size: 12px !important; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="info">
+    <h3 id="info-title">Queenstown Buildings</h3>
+    <div id="info-subtitle">8,671 buildings | 33 layers | 39 metrics | Click for details</div>
+    <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light &#9654;</button>
+    <div class="legend">
+      <div style="color:#999; margin-bottom:2px;">Building height</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:red"></span> &gt; 100 m</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:orange"></span> 50 &ndash; 100 m</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:yellow"></span> 30 &ndash; 50 m</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:cyan"></span> 15 &ndash; 30 m</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:white"></span> &le; 15 m</div>
+    </div>
+    <div id="layer-legend"></div>
+  </div>
+  <div id="layer-panel">
+    <div id="layer-panel-header" onclick="toggleLayerPanel()">
+      <span>Layers</span><span id="layer-panel-arrow">&#9660;</span>
+    </div>
+    <div id="layer-panel-body"></div>
+  </div>
+  <div id="picked"></div>
+
+  <script>
+    // ---------------------------------------------------------------
+    // Utility functions
+    // ---------------------------------------------------------------
+    function hexToRgba(hex, a) {
+      if (a === undefined) a = 255;
+      return [
+        parseInt(hex.slice(1, 3), 16),
+        parseInt(hex.slice(3, 5), 16),
+        parseInt(hex.slice(5, 7), 16),
+        a,
+      ];
+    }
+
+    function rampColor(val, min, max, hexRamp, alpha) {
+      if (val === null || val === undefined || isNaN(val)) return [128, 128, 128, 40];
+      var range = max - min || 1;
+      var t = Math.max(0, Math.min(1, (val - min) / range));
+      var step = Math.min(Math.floor(t * hexRamp.length), hexRamp.length - 1);
+      return hexToRgba(hexRamp[step], alpha);
+    }
+
+    function computeCentroid(feature) {
+      var geom = feature.geometry;
+      if (geom.type === 'Point') return geom.coordinates;
+      if (geom.type === 'MultiPoint') return geom.coordinates[0];
+      var ring;
+      if (geom.type === 'MultiPolygon') ring = geom.coordinates[0][0];
+      else if (geom.type === 'Polygon') ring = geom.coordinates[0];
+      else return [0, 0];
+      var n = ring.length;
+      return [
+        ring.reduce(function(s, p) { return s + p[0]; }, 0) / n,
+        ring.reduce(function(s, p) { return s + p[1]; }, 0) / n,
+      ];
+    }
+
+    // ---------------------------------------------------------------
+    // District configuration
+    // ---------------------------------------------------------------
+    var DISTRICTS = {
+      queenstown: {
+        label: 'Queenstown', center: [103.7885, 1.2870], zoom: 14.5, buildingCount: 8671,
+        rasterBounds: [103.7502, 1.2550, 103.8166, 1.3188],
+        layerCounts: { hawker: 9, supermarket: 19, mrt: 26, parks: 9, parkfac: 370, parkconn: 36, nature: 12, abcwaters: 5, nptracks: 1559, cycling: 110, cc: 4, gym: 4, preschool: 81, chas: 43, sportfac: 1, hdb: 308, heightctl: 7, streetnet: 3788, walk_intdens: 2178, walk_grid: 2178, rs_grid: 2394, buildings: 8671, grav_food: 2507, grav_transit: 2507, grav_green: 2507, grav_health: 2507, grav_education: 2507 },
+      },
+      bishan: {
+        label: 'Bishan', center: [103.8395, 1.3550], zoom: 14.5, buildingCount: 3766,
+        rasterBounds: [103.8185, 1.3420, 103.8604, 1.3680],
+        layerCounts: { hawker: 1, supermarket: 8, mrt: 16, parks: 18, parkfac: 173, parkconn: 10, nature: 20, abcwaters: 3, nptracks: 481, cycling: 160, cc: 4, gym: 5, preschool: 50, chas: 20, sportfac: 2, hdb: 1, heightctl: 0, streetnet: 1363, walk_intdens: 769, walk_grid: 769, rs_grid: 840, buildings: 3766, grav_food: 0, grav_transit: 0, grav_green: 0, grav_health: 0, grav_education: 0 },
+      },
+      outram: {
+        label: 'Outram', center: [103.8423, 1.2817], zoom: 15, buildingCount: 1589,
+        rasterBounds: [103.8348, 1.2742, 103.8497, 1.2892],
+        layerCounts: { hawker: 5, supermarket: 7, mrt: 16, parks: 5, parkfac: 11, parkconn: 0, nature: 5, abcwaters: 0, nptracks: 192, cycling: 27, cc: 2, gym: 19, preschool: 16, chas: 16, sportfac: 1, hdb: 1, heightctl: 0, streetnet: 711, walk_intdens: 135, walk_grid: 135, rs_grid: 175, buildings: 1589, grav_food: 0, grav_transit: 0, grav_green: 0, grav_health: 0, grav_education: 0 },
+      },
+      tampines: {
+        label: 'Tampines', center: [103.9549, 1.3450], zoom: 14, buildingCount: 2910,
+        rasterBounds: [103.9250, 1.3141, 103.9848, 1.3758],
+        layerCounts: { hawker: 3, supermarket: 25, mrt: 27, parks: 13, parkfac: 194, parkconn: 19, nature: 13, abcwaters: 3, nptracks: 449, cycling: 471, cc: 6, gym: 4, preschool: 142, chas: 81, sportfac: 1, hdb: 19, heightctl: 0, streetnet: 4144, walk_intdens: 2085, walk_grid: 2085, rs_grid: 2230, buildings: 2910, grav_food: 0, grav_transit: 0, grav_green: 0, grav_health: 0, grav_education: 0 },
+      },
+      newton: {
+        label: 'Newton', center: [103.8377, 1.3085], zoom: 15, buildingCount: 759,
+        rasterBounds: [103.8267, 1.2996, 103.8487, 1.3174],
+        layerCounts: { hawker: 1, supermarket: 0, mrt: 3, parks: 1, parkfac: 2, parkconn: 0, nature: 1, abcwaters: 0, nptracks: 0, cycling: 0, cc: 1, gym: 1, preschool: 7, chas: 3, sportfac: 0, hdb: 0, heightctl: 0, streetnet: 838, walk_intdens: 210, walk_grid: 210, rs_grid: 265, buildings: 759, grav_food: 0, grav_transit: 0, grav_green: 0, grav_health: 0, grav_education: 0 },
+      },
+    };
+
+    var currentDistrict = 'queenstown';
+
+    function layerFile(templatePath) {
+      return templatePath.replace(/queenstown/g, currentDistrict);
+    }
+
+    // ---------------------------------------------------------------
+    // Layer definitions
+    // ---------------------------------------------------------------
+    var LAYERS = [
+      // District
+      { id: 'boundary', label: 'District boundary', file: 'geo/queenstown-boundary.geojson', color: '#ff00ff', group: 'District', deckType: 'boundary', onByDefault: true },
+      { id: 'subzones', label: 'Subzones', file: 'geo/queenstown-subzones.geojson', color: '#00ffff', group: 'District', deckType: 'subzones', onByDefault: true },
+      { id: 'buildings', label: 'Buildings (extruded)', file: 'geo/global/queenstown-buildings.geojson', color: '#ffffff', group: 'District', deckType: 'buildings', onByDefault: true },
+      // Food & Daily Needs
+      { id: 'hawker', label: 'Hawker centres', file: 'geo/gov-sg/queenstown-hawker-centres.geojson', color: '#ff6b35', group: 'Food & Daily Needs', deckType: 'point', source: 'gov-sg' },
+      { id: 'supermarket', label: 'Supermarkets', file: 'geo/gov-sg/queenstown-supermarkets.geojson', color: '#4ecdc4', group: 'Food & Daily Needs', deckType: 'point', source: 'gov-sg' },
+      { id: 'grav_food', label: 'UNA food access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#ff6b35', group: 'Food & Daily Needs', deckType: 'gravity', gravityField: 'gravity_food', source: 'global' },
+      // Transit
+      { id: 'mrt', label: 'MRT exits', file: 'geo/gov-sg/queenstown-mrt-exits.geojson', color: '#2c5f8a', group: 'Transit', deckType: 'point', source: 'gov-sg' },
+      { id: 'grav_transit', label: 'UNA transit access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#2c5f8a', group: 'Transit', deckType: 'gravity', gravityField: 'gravity_transit', source: 'global' },
+      // Green & Recreation
+      { id: 'parks', label: 'Parks', file: 'geo/gov-sg/queenstown-parks.geojson', color: '#45b649', group: 'Green & Recreation', deckType: 'point', source: 'gov-sg' },
+      { id: 'parkfac', label: 'Park facilities', file: 'geo/gov-sg/queenstown-park-facilities.geojson', color: '#7bc67e', group: 'Green & Recreation', deckType: 'point', source: 'gov-sg' },
+      { id: 'parkconn', label: 'Park connectors', file: 'geo/gov-sg/queenstown-park-connectors.geojson', color: '#44ff44', group: 'Green & Recreation', deckType: 'line', source: 'gov-sg' },
+      { id: 'nature', label: 'Parks & nature reserves', file: 'geo/gov-sg/queenstown-nparks-parks-nature-reserves.geojson', color: '#2e7d32', group: 'Green & Recreation', deckType: 'polygon', source: 'gov-sg' },
+      { id: 'abcwaters', label: 'ABC Waters', file: 'geo/gov-sg/queenstown-abc-waters.geojson', color: '#0288d1', group: 'Green & Recreation', deckType: 'polygon', source: 'gov-sg' },
+      { id: 'nptracks', label: 'NParks tracks', file: 'geo/gov-sg/queenstown-nparks-tracks.geojson', color: '#8bc34a', group: 'Green & Recreation', deckType: 'line', source: 'gov-sg' },
+      { id: 'grav_green', label: 'UNA green access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#45b649', group: 'Green & Recreation', deckType: 'gravity', gravityField: 'gravity_green', source: 'global' },
+      // Active Mobility
+      { id: 'cycling', label: 'Cycling paths', file: 'geo/gov-sg/queenstown-cycling-paths.geojson', color: '#00ff88', group: 'Active Mobility', deckType: 'line', source: 'gov-sg' },
+      // Community
+      { id: 'cc', label: 'Community clubs', file: 'geo/gov-sg/queenstown-community-clubs.geojson', color: '#9b59b6', group: 'Community', deckType: 'point', source: 'gov-sg' },
+      { id: 'gym', label: 'Gyms', file: 'geo/gov-sg/queenstown-gyms.geojson', color: '#e74c3c', group: 'Community', deckType: 'point', source: 'gov-sg' },
+      { id: 'preschool', label: 'Pre-schools', file: 'geo/gov-sg/queenstown-preschools.geojson', color: '#f39c12', group: 'Community', deckType: 'point', source: 'gov-sg' },
+      { id: 'chas', label: 'CHAS clinics', file: 'geo/gov-sg/queenstown-chas-clinics.geojson', color: '#e84393', group: 'Community', deckType: 'point', source: 'gov-sg' },
+      { id: 'sportfac', label: 'Sport facilities', file: 'geo/gov-sg/queenstown-sport-facilities.geojson', color: '#ff5252', group: 'Community', deckType: 'point', source: 'gov-sg' },
+      { id: 'grav_health', label: 'UNA health access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#e84393', group: 'Community', deckType: 'gravity', gravityField: 'gravity_health', source: 'global' },
+      { id: 'grav_education', label: 'UNA education access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#f39c12', group: 'Community', deckType: 'gravity', gravityField: 'gravity_education', source: 'global' },
+      // Housing
+      { id: 'hdb', label: 'HDB blocks', file: 'geo/global/queenstown-buildings-hdb-enriched.geojson', color: '#ff5722', group: 'Housing', deckType: 'hdb', source: 'global' },
+      // Planning
+      { id: 'heightctl', label: 'Height control zones', file: 'geo/gov-sg/queenstown-ura-height-control.geojson', color: '#ff9800', group: 'Planning', deckType: 'polygon', source: 'gov-sg' },
+      // Street Network
+      { id: 'streetnet', label: 'Street network', file: 'geo/global/queenstown-street-network.geojson', color: '#00bcd4', group: 'Street Network', deckType: 'streetnet', source: 'global' },
+      { id: 'walk_intdens', label: 'Intersection density grid', file: 'geo/global/queenstown-walkability-grid.geojson', color: '#2196f3', group: 'Street Network', deckType: 'walk_intdens', source: 'global' },
+      { id: 'walk_grid', label: 'Walkability grid', file: 'geo/global/queenstown-walkability-grid.geojson', color: '#4caf50', group: 'Street Network', deckType: 'walk_grid', source: 'global' },
+      // Remote Sensing — raster overlays
+      { id: 'rs_ndvi', label: 'NDVI (vegetation)', rasterFile: 'geo/global/rasters/queenstown-ndvi.png', color: '#4caf50', group: 'Remote Sensing', deckType: 'raster', source: 'global' },
+      { id: 'rs_lst', label: 'Land surface temp', rasterFile: 'geo/global/rasters/queenstown-lst.png', color: '#f44336', group: 'Remote Sensing', deckType: 'raster', source: 'global' },
+      { id: 'rs_ndbi', label: 'Built-up (NDBI)', rasterFile: 'geo/global/rasters/queenstown-ndbi.png', color: '#ff9800', group: 'Remote Sensing', deckType: 'raster', source: 'global' },
+      { id: 'rs_canopy', label: 'Tree canopy cover', rasterFile: 'geo/global/rasters/queenstown-canopy.png', color: '#2e7d32', group: 'Remote Sensing', deckType: 'raster', source: 'global' },
+      // Remote Sensing — clickable 100m grid
+      { id: 'rs_grid', label: '100m grid (clickable)', file: 'geo/global/queenstown-rs-grid.geojson', color: '#8bc34a', group: 'Remote Sensing', deckType: 'rs_grid', source: 'global' },
+    ];
+
+    // ---------------------------------------------------------------
+    // Choropleth categories (same as CesiumJS viewer + UNA gravity)
+    // ---------------------------------------------------------------
+    var CHOROPLETH_CATEGORIES = [
+      {
+        name: 'Demographics & Housing',
+        metrics: [
+          { value: 'population_density', label: 'Population density', unit: '/km\u00B2', fmt: 'int', badge: 'rate' },
+          { value: 'elderly_pct', label: 'Elderly share (65+)', unit: '%', fmt: 'pct', badge: 'rate' },
+          { value: 'dwelling_density', label: 'Dwelling density', unit: '/km\u00B2', fmt: 'int', badge: 'rate' },
+          { value: 'total_dwelling_units', label: 'Dwelling units', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'hdb_count', label: 'HDB blocks', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'avg_hdb_year', label: 'Avg HDB year built', unit: '', fmt: 'int', badge: 'rate' },
+          { value: 'resale_median_price', label: 'Resale flat price', unit: '', fmt: 'price', badge: 'rate' },
+          { value: 'resale_transaction_count', label: 'Resale transactions', unit: '', fmt: 'int', badge: 'cnt' },
+        ]
+      },
+      {
+        name: 'Amenities & Infrastructure',
+        metrics: [
+          { value: 'amenity_density', label: 'Amenity density', unit: '/km\u00B2', fmt: 'float', badge: 'rate' },
+          { value: 'mrt_station_count', label: 'MRT stations', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'cycling_path_km', label: 'Cycling paths', unit: ' km', fmt: 'float', badge: 'cnt' },
+          { value: 'park_connector_km', label: 'Park connectors', unit: ' km', fmt: 'float', badge: 'cnt' },
+          { value: 'nparks_track_km', label: 'NParks tracks', unit: ' km', fmt: 'float', badge: 'cnt' },
+          { value: 'sport_facilities', label: 'Sport facilities', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'green_space_pct', label: 'Green space coverage', unit: '%', fmt: 'float', badge: 'rate' },
+          { value: 'green_space_area_km2', label: 'Green space area', unit: ' km\u00B2', fmt: 'float', badge: 'cnt' },
+          { value: 'abc_waters_area_km2', label: 'ABC Waters area', unit: ' km\u00B2', fmt: 'float', badge: 'cnt' },
+        ]
+      },
+      {
+        name: 'Buildings',
+        metrics: [
+          { value: 'building_count', label: 'Total buildings', unit: '', fmt: 'int', badge: 'cnt' },
+          { value: 'mean_height_m', label: 'Avg building height', unit: ' m', fmt: 'float', badge: 'rate' },
+          { value: 'max_height_m', label: 'Max building height', unit: ' m', fmt: 'float', badge: 'cnt' },
+        ]
+      },
+      {
+        name: 'Remote Sensing',
+        metrics: [
+          { value: 'ndvi_mean', label: 'Vegetation (NDVI)', unit: '', fmt: 'float', badge: 'sat' },
+          { value: 'ndbi_mean', label: 'Built-up (NDBI)', unit: '', fmt: 'float', badge: 'sat' },
+          { value: 'lst_mean_c', label: 'Land Surface Temp', unit: ' \u00B0C', fmt: 'float', badge: 'sat' },
+          { value: 'canopy_cover_pct', label: 'Tree canopy cover', unit: '%', fmt: 'float', badge: 'sat' },
+          { value: 'ghsl_height_mean', label: 'GHSL building height', unit: ' m', fmt: 'float', badge: 'sat' },
+          { value: 'dsm_mean', label: 'Surface elevation', unit: ' m', fmt: 'float', badge: 'sat' },
+        ]
+      },
+      {
+        name: 'Walkability',
+        metrics: [
+          { value: 'walkability_index', label: 'Walkability (BEH-NWI)', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'walkability_slope', label: 'Walkability (slope-adj)', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'intersection_density', label: 'Intersection density', unit: '/km\u00B2', fmt: 'int', badge: 'idx' },
+          { value: 'transit_access_score', label: 'Transit access', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'transit_access_slope', label: 'Transit (slope-adj)', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'destination_accessibility', label: 'Destination access', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'dest_access_slope', label: 'Dest access (slope-adj)', unit: '', fmt: 'float', badge: 'idx' },
+        ]
+      },
+      {
+        name: 'UNA Gravity',
+        metrics: [
+          { value: 'gravity_composite_mean', label: 'Composite accessibility', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'gravity_food_mean', label: 'Food accessibility', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'gravity_transit_mean', label: 'Transit accessibility', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'gravity_green_mean', label: 'Green accessibility', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'gravity_health_mean', label: 'Health accessibility', unit: '', fmt: 'float', badge: 'idx' },
+          { value: 'gravity_education_mean', label: 'Education accessibility', unit: '', fmt: 'float', badge: 'idx' },
+        ]
+      },
+    ];
+
+    var CHOROPLETH_METRICS = [
+      { value: '', label: 'Off' },
+    ].concat(CHOROPLETH_CATEGORIES.reduce(function(acc, cat) { return acc.concat(cat.metrics); }, []));
+
+    var RAMP_COLORS = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];
+
+    // ---------------------------------------------------------------
+    // RS grid colour modes
+    // ---------------------------------------------------------------
+    var rsGridMode = 'ndvi';
+    var RS_GRID_MODES = {
+      ndvi:  { label: 'NDVI', field: 'ndvi', ramp: ['#e8f5e9','#a5d6a7','#66bb6a','#388e3c','#2e7d32','#1b5e20'], unit: '' },
+      dem:   { label: 'DEM',  field: 'dem_m', ramp: ['#2166ac','#67a9cf','#d1e5f0','#fddbc7','#ef8a62','#b2182b'], unit: ' m' },
+      slope: { label: 'Slope', field: 'slope_deg', ramp: ['#ffffcc','#c2e699','#78c679','#31a354','#006837','#004529'], unit: '\u00B0' },
+      lst:   { label: 'LST',  field: 'lst_c', ramp: ['#2166ac','#67a9cf','#fddbc7','#ef8a62','#d6604d','#b2182b'], unit: ' \u00B0C' },
+      ndbi:  { label: 'NDBI', field: 'ndbi', ramp: ['#1a9850','#91cf60','#d9ef8b','#fee08b','#fc8d59','#d73027'], unit: '' },
+    };
+
+    // ---------------------------------------------------------------
+    // State
+    // ---------------------------------------------------------------
+    var layerState = {};       // id -> { data, loaded, visible }
+    var dataCache = {};        // url -> parsed GeoJSON
+    var choroplethData = null; // per-district subzone-summary GeoJSON
+    var activeChoropleth = ''; // metric key
+    var choroplethStats = { min: 0, max: 1 };
+    var rsGridStats = { min: 0, max: 1 };
+    var provenanceState = { 'gov-sg': true, 'global': true };
+
+    // Initialise layer state
+    LAYERS.forEach(function(l) {
+      layerState[l.id] = { data: null, loaded: false, visible: !!l.onByDefault };
+    });
+
+    // ---------------------------------------------------------------
+    // Data fetching with cache
+    // ---------------------------------------------------------------
+    function fetchGeoJSON(url) {
+      if (dataCache[url]) return Promise.resolve(dataCache[url]);
+      return fetch(url).then(function(resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      }).then(function(data) {
+        dataCache[url] = data;
+        return data;
+      });
+    }
+
+    // ---------------------------------------------------------------
+    // Basemap
+    // ---------------------------------------------------------------
+    var BASEMAPS = [
+      { label: '\u263E Dark', style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' },
+      { label: '\u2600 Light', style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
+      { label: '\uD83D\uDDFA Voyager', style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' },
+    ];
+    var basemapIndex = 0;
+
+    function toggleBasemap() {
+      basemapIndex = (basemapIndex + 1) % BASEMAPS.length;
+      deckgl.setProps({ mapStyle: BASEMAPS[basemapIndex].style });
+      var nextIndex = (basemapIndex + 1) % BASEMAPS.length;
+      document.getElementById('basemap-toggle').innerHTML = BASEMAPS[nextIndex].label + ' &#9654;';
+    }
+
+    // ---------------------------------------------------------------
+    // DeckGL instance
+    // ---------------------------------------------------------------
+    var dist = DISTRICTS[currentDistrict];
+    var deckgl = new deck.DeckGL({
+      container: 'map',
+      mapStyle: BASEMAPS[0].style,
+      initialViewState: {
+        longitude: dist.center[0],
+        latitude: dist.center[1],
+        zoom: dist.zoom,
+        pitch: 45,
+        bearing: 0,
+      },
+      controller: true,
+      layers: [],
+      onClick: onMapClick,
+    });
+
+    // ---------------------------------------------------------------
+    // Click handler
+    // ---------------------------------------------------------------
+    function onMapClick(info) {
+      var pickedDiv = document.getElementById('picked');
+      if (!info.object) {
+        pickedDiv.style.display = 'none';
+        return;
+      }
+      var layerId = info.layer ? info.layer.id : '';
+      var props = info.object.properties || info.object || {};
+      var html = buildPopupHtml(layerId, props);
+      if (html) {
+        pickedDiv.innerHTML = html;
+        pickedDiv.style.display = 'block';
+      } else {
+        pickedDiv.style.display = 'none';
+      }
+    }
+
+    function buildPopupHtml(layerId, props) {
+      if (layerId === 'buildings') {
+        var name = props.name || '(unnamed)';
+        var btype = props.building || '';
+        var height = props.height_m || '';
+        var hsource = props.height_source || '';
+        var dsource = props.data_source || '';
+        var levels = props.building_levels || '';
+        var year = props.hdb_year_completed || '';
+        var html = '<b>' + name + '</b><br>';
+        html += 'Type: ' + btype + '<br>';
+        html += 'Height: ' + height + 'm';
+        if (levels) html += ' (' + levels + ' storeys)';
+        html += '<br>Height source: ' + hsource + '<br>';
+        html += 'Data source: ' + dsource + '<br>';
+        if (year) html += 'Year completed: ' + year + '<br>';
+        return html;
+      }
+      if (layerId === 'hdb') {
+        var n = props.name || props.addr_housenumber || '(unnamed)';
+        var street = props.addr_street || '';
+        var h = '<b>' + n + '</b>';
+        if (street) h += ' ' + street;
+        h += '<br>';
+        if (props.hdb_year_completed) h += 'Year completed: ' + props.hdb_year_completed + '<br>';
+        if (props.hdb_total_dwelling_units) h += 'Dwelling units: ' + props.hdb_total_dwelling_units + '<br>';
+        if (props.hdb_residential === 'Y') h += 'Residential ';
+        if (props.hdb_commercial === 'Y') h += 'Commercial ';
+        if (props.hdb_market_hawker === 'Y') h += 'Market/Hawker ';
+        return h;
+      }
+      if (layerId === 'rs_grid') {
+        var h = '<b>Grid cell #' + props.cell_id + '</b> (100m)<br>';
+        h += 'NDVI: ' + props.ndvi + '<br>';
+        h += 'NDBI: ' + props.ndbi + '<br>';
+        h += 'LST: ' + props.lst_c + ' \u00B0C<br>';
+        h += 'Canopy: ' + props.canopy_pct + '%<br>';
+        if (props.dem_m !== null && props.dem_m !== undefined) h += 'Elevation: ' + props.dem_m + ' m<br>';
+        if (props.slope_deg !== null && props.slope_deg !== undefined) h += 'Slope: ' + props.slope_deg + '\u00B0<br>';
+        return h;
+      }
+      if (layerId === 'walk_intdens' || layerId === 'walk_grid') {
+        var h = '<b>Grid cell #' + props.cell_id + '</b> (100m)<br>';
+        h += 'Intersection density: ' + props.int_density + '/km\u00B2<br>';
+        h += 'Transit access: ' + props.transit_access + '<br>';
+        h += 'Dest access: ' + props.dest_access + '<br>';
+        h += 'Walkability: ' + props.walkability + '<br>';
+        if (props.transit_slope !== null && props.transit_slope !== undefined) h += 'Transit (slope): ' + props.transit_slope + '<br>';
+        if (props.dest_slope !== null && props.dest_slope !== undefined) h += 'Dest (slope): ' + props.dest_slope + '<br>';
+        if (props.slope_walkability !== null && props.slope_walkability !== undefined) h += 'Walkability (slope): ' + props.slope_walkability + '<br>';
+        h += '<span style="font-size:0.85em;color:#aaa">Slope penalty via Tobler\'s hiking function</span>';
+        return h;
+      }
+      if (layerId === 'streetnet') {
+        var n = props.name || '(unnamed road)';
+        var h = '<b>' + n + '</b><br>';
+        h += 'Length: ' + props.length + ' m<br>';
+        h += 'Betweenness: ' + props.betweenness + '<br>';
+        if (props.highway) h += 'Type: ' + props.highway + '<br>';
+        return h;
+      }
+      if (layerId === 'heightctl' || layerId === 'heightctl-polygons') {
+        if (props.HT_CTL_TXT) {
+          var h = '<b>Height control zone</b><br>';
+          h += 'Max storeys: ' + props.HT_CTL_TXT + '<br>';
+          if (props.HT_CTL_TYP) h += 'Type: ' + props.HT_CTL_TYP + '<br>';
+          return h;
+        }
+      }
+      if (layerId === 'choropleth') {
+        var n = props.subzone_name || props.SUBZONE_N || '(subzone)';
+        var h = '<b>' + n + '</b><br>';
+        if (activeChoropleth) {
+          var metric = CHOROPLETH_METRICS.find(function(m) { return m.value === activeChoropleth; });
+          if (metric) {
+            var val = getMetricValue(props, activeChoropleth);
+            h += metric.label + ': ' + formatValue(val, metric.fmt, metric.unit);
+          }
+        }
+        return h;
+      }
+      if (layerId.startsWith('grav_')) {
+        var n = props.name || props.addr_housenumber || '(building)';
+        var h = '<b>' + n + '</b><br>';
+        if (props.gravity_composite !== undefined) h += 'Composite: ' + (props.gravity_composite || 0).toFixed(1) + '<br>';
+        if (props.gravity_food !== undefined) h += 'Food: ' + (props.gravity_food || 0).toFixed(1) + '<br>';
+        if (props.gravity_transit !== undefined) h += 'Transit: ' + (props.gravity_transit || 0).toFixed(1) + '<br>';
+        if (props.gravity_green !== undefined) h += 'Green: ' + (props.gravity_green || 0).toFixed(1) + '<br>';
+        if (props.gravity_health !== undefined) h += 'Health: ' + (props.gravity_health || 0).toFixed(1) + '<br>';
+        if (props.gravity_education !== undefined) h += 'Education: ' + (props.gravity_education || 0).toFixed(1) + '<br>';
+        return h;
+      }
+      // Generic
+      var name = props.name || props.Name || props.SUBZONE_N || '(feature)';
+      return '<b>' + name + '</b>';
+    }
+
+    // ---------------------------------------------------------------
+    // Choropleth helpers
+    // ---------------------------------------------------------------
+    function getMetricValue(props, metricKey) {
+      if (metricKey === 'elderly_pct') {
+        var total = props.population_total;
+        var elderly = props.population_elderly_65plus;
+        if (!total || total === 0) return null;
+        return (elderly / total) * 100;
+      }
+      var v = props[metricKey];
+      return (v === null || v === undefined) ? null : v;
+    }
+
+    function formatValue(v, fmt, unit) {
+      if (v === null || v === undefined) return '\u2014';
+      if (fmt === 'int') return v.toLocaleString() + unit;
+      if (fmt === 'float') return v.toFixed(1) + unit;
+      if (fmt === 'pct') return v.toFixed(1) + '%';
+      if (fmt === 'price') return '$' + Math.round(v / 1000).toLocaleString() + 'K';
+      return String(v) + unit;
+    }
+
+    // ---------------------------------------------------------------
+    // Layer creation functions
+    // ---------------------------------------------------------------
+    function createDeckLayer(layerDef, data) {
+      switch (layerDef.deckType) {
+        case 'boundary': return createBoundaryLayer(data);
+        case 'subzones': return createSubzoneLayers(data);
+        case 'buildings': return createBuildingsLayer(data);
+        case 'point': return createPointLayer(layerDef, data);
+        case 'line': return createLineLayer(layerDef, data);
+        case 'polygon': return createPolygonLayer(layerDef, data);
+        case 'hdb': return createHdbLayer(data);
+        case 'streetnet': return createStreetNetLayer(data);
+        case 'rs_grid': return createRsGridLayer(data);
+        case 'walk_intdens': return createWalkIntDensLayer(data);
+        case 'walk_grid': return createWalkGridLayer(data);
+        case 'gravity': return createGravityLayer(layerDef, data);
+        default: return null;
+      }
+    }
+
+    function createBoundaryLayer(data) {
+      return new deck.GeoJsonLayer({
+        id: 'boundary',
+        data: data,
+        pickable: false,
+        filled: false,
+        stroked: true,
+        getLineColor: [255, 0, 255, 255],
+        getLineWidth: 3,
+        lineWidthMinPixels: 3,
+      });
+    }
+
+    function createSubzoneLayers(data) {
+      var outlines = new deck.GeoJsonLayer({
+        id: 'subzones',
+        data: data,
+        pickable: false,
+        filled: false,
+        stroked: true,
+        getLineColor: [0, 255, 255, 150],
+        getLineWidth: 2,
+        lineWidthMinPixels: 1,
+      });
+      var labelData = data.features.map(function(f) {
+        return { position: computeCentroid(f), text: f.properties.SUBZONE_N || '' };
+      });
+      var labels = new deck.TextLayer({
+        id: 'subzone-labels',
+        data: labelData,
+        getPosition: function(d) { return d.position; },
+        getText: function(d) { return d.text; },
+        getSize: 13,
+        getColor: [0, 255, 255],
+        fontFamily: 'sans-serif',
+        fontWeight: 'bold',
+        outlineWidth: 3,
+        outlineColor: [0, 0, 0],
+        sizeUnits: 'pixels',
+        getTextAnchor: 'middle',
+        getAlignmentBaseline: 'center',
+        billboard: true,
+        pickable: false,
+      });
+      return [outlines, labels];
+    }
+
+    function createBuildingsLayer(data) {
+      return new deck.GeoJsonLayer({
+        id: 'buildings',
+        data: data,
+        pickable: true,
+        extruded: true,
+        wireframe: false,
+        opacity: 0.85,
+        getElevation: function(d) { return d.properties.height_m || 5; },
+        getFillColor: function(d) {
+          var h = d.properties.height_m || 5;
+          if (h > 100) return [255, 0, 0, 200];
+          if (h > 50) return [255, 165, 0, 200];
+          if (h > 30) return [255, 255, 0, 200];
+          if (h > 15) return [0, 255, 255, 200];
+          return [255, 255, 255, 180];
+        },
+        material: true,
+      });
+    }
+
+    function createPointLayer(layerDef, data) {
+      var color = hexToRgba(layerDef.color);
+      return new deck.GeoJsonLayer({
+        id: layerDef.id,
+        data: data,
+        pickable: true,
+        pointType: 'circle',
+        getPointRadius: 30,
+        pointRadiusMinPixels: 4,
+        pointRadiusMaxPixels: 12,
+        getFillColor: color,
+        stroked: true,
+        getLineColor: [0, 0, 0],
+        lineWidthMinPixels: 1,
+      });
+    }
+
+    function createLineLayer(layerDef, data) {
+      var color = hexToRgba(layerDef.color);
+      return new deck.GeoJsonLayer({
+        id: layerDef.id,
+        data: data,
+        pickable: true,
+        getLineColor: color,
+        getLineWidth: 2,
+        lineWidthMinPixels: 1,
+      });
+    }
+
+    function createPolygonLayer(layerDef, data) {
+      var fillColor = hexToRgba(layerDef.color, 75);
+      var outlineColor = hexToRgba(layerDef.color);
+      var polygons = new deck.GeoJsonLayer({
+        id: layerDef.id === 'heightctl' ? 'heightctl-polygons' : layerDef.id,
+        data: data,
+        pickable: true,
+        filled: true,
+        stroked: true,
+        getFillColor: fillColor,
+        getLineColor: outlineColor,
+        getLineWidth: 1,
+        lineWidthMinPixels: 1,
+      });
+      if (layerDef.id === 'heightctl') {
+        var labelData = data.features
+          .filter(function(f) { return f.properties.HT_CTL_TXT; })
+          .map(function(f) {
+            return { position: computeCentroid(f), text: f.properties.HT_CTL_TXT + ' sty' };
+          });
+        var labels = new deck.TextLayer({
+          id: 'heightctl-labels',
+          data: labelData,
+          getPosition: function(d) { return d.position; },
+          getText: function(d) { return d.text; },
+          getSize: 12,
+          getColor: [255, 255, 255],
+          fontFamily: 'sans-serif',
+          fontWeight: 'bold',
+          outlineWidth: 2,
+          outlineColor: [0, 0, 0],
+          sizeUnits: 'pixels',
+          billboard: true,
+          pickable: false,
+        });
+        return [polygons, labels];
+      }
+      return polygons;
+    }
+
+    function createHdbLayer(data) {
+      var hdbPoints = data.features
+        .filter(function(f) { return f.properties.hdb_match; })
+        .map(function(f) {
+          return {
+            type: 'Feature',
+            properties: f.properties,
+            geometry: { type: 'Point', coordinates: computeCentroid(f) },
+          };
+        });
+      return new deck.GeoJsonLayer({
+        id: 'hdb',
+        data: { type: 'FeatureCollection', features: hdbPoints },
+        pickable: true,
+        pointType: 'circle',
+        getPointRadius: 40,
+        pointRadiusMinPixels: 5,
+        pointRadiusMaxPixels: 14,
+        getFillColor: function(d) {
+          var year = d.properties.hdb_year_completed;
+          if (year && year >= 2000) return [46, 204, 113];
+          if (year && year >= 1980) return [243, 156, 18];
+          return [231, 76, 60];
+        },
+        stroked: true,
+        getLineColor: [0, 0, 0],
+        lineWidthMinPixels: 1,
+      });
+    }
+
+    function createStreetNetLayer(data) {
+      return new deck.GeoJsonLayer({
+        id: 'streetnet',
+        data: data,
+        pickable: true,
+        getLineColor: function(d) {
+          var bc = d.properties.betweenness || 0;
+          if (bc > 0.01) return [255, 87, 34];
+          if (bc > 0.005) return [255, 152, 0];
+          if (bc > 0.002) return [255, 235, 59];
+          return [0, 188, 212];
+        },
+        getLineWidth: function(d) {
+          var bc = d.properties.betweenness || 0;
+          return bc > 0.005 ? 4 : 2;
+        },
+        lineWidthMinPixels: 1,
+      });
+    }
+
+    function createRsGridLayer(data) {
+      var mode = RS_GRID_MODES[rsGridMode];
+      var values = data.features
+        .map(function(f) { return f.properties[mode.field]; })
+        .filter(function(v) { return v !== null && v !== undefined && !isNaN(v); });
+      var min = Math.min.apply(null, values);
+      var max = Math.max.apply(null, values);
+      rsGridStats = { min: min, max: max };
+
+      // Update dynamic legend
+      LAYER_LEGEND_DEFS.rs_grid = {
+        title: '100m grid (' + mode.label + ')',
+        type: 'gradient',
+        gradient: 'linear-gradient(to right, ' + mode.ramp[0] + ', ' + mode.ramp[Math.floor(mode.ramp.length / 2)] + ', ' + mode.ramp[mode.ramp.length - 1] + ')',
+        min: min.toFixed(1) + mode.unit,
+        max: max.toFixed(1) + mode.unit,
+      };
+
+      return new deck.GeoJsonLayer({
+        id: 'rs_grid',
+        data: data,
+        pickable: true,
+        filled: true,
+        stroked: false,
+        getFillColor: function(d) {
+          var val = d.properties[mode.field];
+          return rampColor(val, min, max, mode.ramp, 130);
+        },
+        updateTriggers: {
+          getFillColor: [rsGridMode],
+        },
+      });
+    }
+
+    function createWalkIntDensLayer(data) {
+      var ramp = ['#e3f2fd', '#90caf9', '#42a5f5', '#1e88e5', '#1565c0', '#0d47a1'];
+      var values = data.features
+        .map(function(f) { return f.properties.int_density; })
+        .filter(function(v) { return v !== null && v !== undefined; });
+      var min = Math.min.apply(null, values);
+      var max = Math.max.apply(null, values);
+      return new deck.GeoJsonLayer({
+        id: 'walk_intdens',
+        data: data,
+        pickable: true,
+        filled: true,
+        stroked: false,
+        getFillColor: function(d) {
+          return rampColor(d.properties.int_density, min, max, ramp, 140);
+        },
+      });
+    }
+
+    function createWalkGridLayer(data) {
+      var ramp = ['#e8f5e9', '#a5d6a7', '#66bb6a', '#388e3c', '#2e7d32', '#1b5e20'];
+      var values = data.features
+        .map(function(f) { return f.properties.walkability; })
+        .filter(function(v) { return v !== null && v !== undefined; });
+      var min = Math.min.apply(null, values);
+      var max = Math.max.apply(null, values);
+      return new deck.GeoJsonLayer({
+        id: 'walk_grid',
+        data: data,
+        pickable: true,
+        filled: true,
+        stroked: false,
+        getFillColor: function(d) {
+          return rampColor(d.properties.walkability, min, max, ramp, 140);
+        },
+      });
+    }
+
+    function createGravityLayer(layerDef, data) {
+      var baseColor = hexToRgba(layerDef.color);
+      var field = layerDef.gravityField;
+      var points = data.features.map(function(f) {
+        return {
+          type: 'Feature',
+          properties: f.properties,
+          geometry: { type: 'Point', coordinates: computeCentroid(f) },
+        };
+      });
+      return new deck.GeoJsonLayer({
+        id: layerDef.id,
+        data: { type: 'FeatureCollection', features: points },
+        pickable: true,
+        pointType: 'circle',
+        getPointRadius: 25,
+        pointRadiusMinPixels: 3,
+        pointRadiusMaxPixels: 10,
+        getFillColor: function(d) {
+          var score = d.properties[field] || 0;
+          var t = Math.min(score / 100, 1);
+          return [baseColor[0], baseColor[1], baseColor[2], Math.round(50 + t * 200)];
+        },
+        stroked: false,
+      });
+    }
+
+    function createChoroplethLayer() {
+      if (!choroplethData || !activeChoropleth) return null;
+      var values = choroplethData.features.map(function(f) { return getMetricValue(f.properties, activeChoropleth); });
+      var valid = values.filter(function(v) { return v !== null && v !== undefined; });
+      if (valid.length === 0) return null;
+      var min = Math.min.apply(null, valid);
+      var max = Math.max.apply(null, valid);
+      choroplethStats = { min: min, max: max };
+
+      return new deck.GeoJsonLayer({
+        id: 'choropleth',
+        data: choroplethData,
+        pickable: true,
+        filled: true,
+        stroked: false,
+        getFillColor: function(d) {
+          var v = getMetricValue(d.properties, activeChoropleth);
+          return rampColor(v, min, max, RAMP_COLORS, 140);
+        },
+        updateTriggers: {
+          getFillColor: [activeChoropleth],
+        },
+      });
+    }
+
+    // ---------------------------------------------------------------
+    // Rebuild all deck.gl layers (called after any state change)
+    // ---------------------------------------------------------------
+    function rebuildDeckLayers() {
+      var layers = [];
+
+      function addIfVisible(id) {
+        var state = layerState[id];
+        if (!state || !state.visible) return;
+
+        // Raster layers
+        var layerDef = LAYERS.find(function(l) { return l.id === id; });
+        if (!layerDef) return;
+
+        if (layerDef.deckType === 'raster') {
+          var bounds = DISTRICTS[currentDistrict].rasterBounds;
+          var imageUrl = layerFile(layerDef.rasterFile);
+          layers.push(new deck.BitmapLayer({
+            id: id,
+            bounds: bounds,
+            image: imageUrl,
+            opacity: 0.65,
+          }));
+          return;
+        }
+
+        if (!state.data) return;
+        var result = createDeckLayer(layerDef, state.data);
+        if (result) {
+          if (Array.isArray(result)) {
+            result.forEach(function(l) { layers.push(l); });
+          } else {
+            layers.push(result);
+          }
+        }
+      }
+
+      // Build layers in z-order (bottom to top)
+      // 1. Rasters
+      addIfVisible('rs_ndvi');
+      addIfVisible('rs_lst');
+      addIfVisible('rs_ndbi');
+      addIfVisible('rs_canopy');
+
+      // 2. Choropleth
+      if (activeChoropleth && choroplethData) {
+        var choroLayer = createChoroplethLayer();
+        if (choroLayer) layers.push(choroLayer);
+      }
+
+      // 3. Polygons
+      addIfVisible('nature');
+      addIfVisible('abcwaters');
+      addIfVisible('heightctl');
+
+      // 4. Grids
+      addIfVisible('rs_grid');
+      addIfVisible('walk_intdens');
+      addIfVisible('walk_grid');
+
+      // 5. Lines
+      addIfVisible('streetnet');
+      addIfVisible('parkconn');
+      addIfVisible('nptracks');
+      addIfVisible('cycling');
+
+      // 6. Boundary + subzones
+      addIfVisible('boundary');
+      addIfVisible('subzones');
+
+      // 7. Buildings
+      addIfVisible('buildings');
+
+      // 8. Points
+      ['hawker', 'supermarket', 'mrt', 'parks', 'parkfac', 'cc', 'gym', 'preschool', 'chas', 'sportfac'].forEach(addIfVisible);
+
+      // 9. HDB
+      addIfVisible('hdb');
+
+      // 10. Gravity
+      ['grav_food', 'grav_transit', 'grav_green', 'grav_health', 'grav_education'].forEach(addIfVisible);
+
+      deckgl.setProps({ layers: layers });
+    }
+
+    // ---------------------------------------------------------------
+    // Layer toggle handler
+    // ---------------------------------------------------------------
+    function onLayerToggle(id, visible) {
+      layerState[id].visible = visible;
+      var layerDef = LAYERS.find(function(l) { return l.id === id; });
+
+      // Rasters don't need data loading
+      if (layerDef.deckType === 'raster') {
+        rebuildDeckLayers();
+        updateLayerLegend();
+        return;
+      }
+
+      // Lazy load on first toggle-on
+      if (visible && !layerState[id].loaded) {
+        layerState[id].loaded = true;
+        var url = layerFile(layerDef.file);
+        fetchGeoJSON(url).then(function(data) {
+          layerState[id].data = data;
+          rebuildDeckLayers();
+          updateLayerLegend();
+        }).catch(function(err) {
+          console.warn('Layer ' + layerDef.label + ' not available for ' + currentDistrict + ':', err.message);
+          layerState[id].loaded = false;
+          layerState[id].visible = false;
+          var cb = document.getElementById('layer-cb-' + id);
+          if (cb) cb.checked = false;
+        });
+        return;
+      }
+
+      rebuildDeckLayers();
+      updateLayerLegend();
+    }
+
+    // ---------------------------------------------------------------
+    // Choropleth activation
+    // ---------------------------------------------------------------
+    function updateChoropleth(metricKey) {
+      var legend = document.getElementById('choropleth-legend');
+
+      if (!metricKey) {
+        activeChoropleth = '';
+        legend.style.display = 'none';
+        rebuildDeckLayers();
+        return;
+      }
+
+      activeChoropleth = metricKey;
+
+      // Lazy-load subzone summary GeoJSON
+      if (!choroplethData) {
+        var url = 'geo/' + currentDistrict + '-subzone-summary.geojson';
+        fetchGeoJSON(url).then(function(data) {
+          choroplethData = data;
+          applyChoroLegend(metricKey, legend);
+          rebuildDeckLayers();
+        }).catch(function(err) {
+          console.warn('Choropleth data not available for ' + currentDistrict);
+          legend.style.display = 'none';
+        });
+        return;
+      }
+
+      applyChoroLegend(metricKey, legend);
+      rebuildDeckLayers();
+    }
+
+    function applyChoroLegend(metricKey, legend) {
+      var metric = CHOROPLETH_METRICS.find(function(m) { return m.value === metricKey; });
+      if (!metric || !choroplethData) return;
+      var values = choroplethData.features.map(function(f) { return getMetricValue(f.properties, metricKey); });
+      var valid = values.filter(function(v) { return v !== null && v !== undefined; });
+      if (valid.length === 0) { legend.style.display = 'none'; return; }
+      var min = Math.min.apply(null, valid);
+      var max = Math.max.apply(null, valid);
+      legend.style.display = 'block';
+      document.getElementById('choropleth-min').textContent = formatValue(min, metric.fmt, metric.unit);
+      document.getElementById('choropleth-max').textContent = formatValue(max, metric.fmt, metric.unit);
+    }
+
+    // ---------------------------------------------------------------
+    // Dynamic layer legends
+    // ---------------------------------------------------------------
+    var LAYER_LEGEND_DEFS = {
+      streetnet: {
+        title: 'Betweenness centrality', type: 'discrete',
+        items: [
+          { color: '#ff5722', label: '> 0.01 (high)' },
+          { color: '#ff9800', label: '0.005 \u2013 0.01' },
+          { color: '#ffeb3b', label: '0.002 \u2013 0.005' },
+          { color: '#00bcd4', label: '\u2264 0.002 (low)' },
+        ]
+      },
+      walk_intdens: {
+        title: 'Intersection density', type: 'discrete',
+        items: [
+          { color: '#0d47a1', label: 'High' },
+          { color: '#1565c0', label: '' },
+          { color: '#1e88e5', label: '' },
+          { color: '#42a5f5', label: '' },
+          { color: '#90caf9', label: '' },
+          { color: '#e3f2fd', label: 'Low' },
+        ]
+      },
+      walk_grid: {
+        title: 'Walkability (BEH-NWI)', type: 'gradient',
+        gradient: 'linear-gradient(to right, #e8f5e9, #388e3c, #1b5e20)',
+        min: 'Low', max: 'High',
+      },
+      rs_ndvi: {
+        title: 'NDVI (vegetation)', type: 'gradient',
+        gradient: 'linear-gradient(to right, #d73027, #fee08b, #1a9850)',
+        min: '-0.2', max: '0.8',
+      },
+      rs_lst: {
+        title: 'Land surface temperature', type: 'gradient',
+        gradient: 'linear-gradient(to right, #2166ac, #f4a582, #b2182b)',
+        min: '25 \u00B0C', max: '40 \u00B0C',
+      },
+      rs_ndbi: {
+        title: 'Built-up index (NDBI)', type: 'gradient',
+        gradient: 'linear-gradient(to right, #1a9850, #fee08b, #d73027)',
+        min: '-0.3', max: '0.3',
+      },
+      rs_canopy: {
+        title: 'Tree canopy cover', type: 'gradient',
+        gradient: 'linear-gradient(to right, #ffffcc, #006837)',
+        min: '0%', max: '100%',
+      },
+      rs_grid: {
+        title: '100m grid (NDVI)', type: 'gradient',
+        gradient: 'linear-gradient(to right, #e8f5e9, #388e3c, #1b5e20)',
+        min: '0.0', max: '0.8',
+      },
+    };
+
+    function updateLayerLegend() {
+      var container = document.getElementById('layer-legend');
+      var html = '';
+      for (var id in LAYER_LEGEND_DEFS) {
+        if (!layerState[id] || !layerState[id].visible) continue;
+        var def = LAYER_LEGEND_DEFS[id];
+        html += '<div class="layer-legend-section">';
+        html += '<div class="layer-legend-title">' + def.title + '</div>';
+        if (def.type === 'discrete') {
+          def.items.forEach(function(item) {
+            var lbl = item.label || '&nbsp;';
+            html += '<div class="legend-item"><span class="legend-swatch" style="background:' + item.color + '"></span> ' + lbl + '</div>';
+          });
+        } else if (def.type === 'gradient') {
+          html += '<div class="layer-legend-gradient" style="background:' + def.gradient + '"></div>';
+          html += '<div class="layer-legend-labels"><span>' + def.min + '</span><span>' + def.max + '</span></div>';
+        }
+        html += '</div>';
+      }
+      container.innerHTML = html;
+      container.style.display = html ? 'block' : 'none';
+    }
+
+    // ---------------------------------------------------------------
+    // Layer panel UI
+    // ---------------------------------------------------------------
+    var layerPanelOpen = true;
+    function toggleLayerPanel() {
+      layerPanelOpen = !layerPanelOpen;
+      document.getElementById('layer-panel-body').style.display = layerPanelOpen ? '' : 'none';
+      document.getElementById('layer-panel-arrow').innerHTML = layerPanelOpen ? '&#9660;' : '&#9654;';
+    }
+
+    function buildLayerPanel() {
+      var body = document.getElementById('layer-panel-body');
+      body.innerHTML = '';
+      var counts = DISTRICTS[currentDistrict].layerCounts || {};
+
+      // District selector
+      var distTitle = document.createElement('div');
+      distTitle.className = 'layer-group-title';
+      distTitle.textContent = 'District';
+      body.appendChild(distTitle);
+
+      var distSelect = document.createElement('select');
+      distSelect.className = 'district-select';
+      distSelect.id = 'district-select';
+      for (var key in DISTRICTS) {
+        var opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = DISTRICTS[key].label;
+        if (key === currentDistrict) opt.selected = true;
+        distSelect.appendChild(opt);
+      }
+      distSelect.addEventListener('change', function() { switchDistrict(distSelect.value); });
+      body.appendChild(distSelect);
+
+      // Provenance filter bar
+      var provBar = document.createElement('div');
+      provBar.className = 'provenance-bar';
+      var btnGov = document.createElement('button');
+      btnGov.className = 'provenance-btn' + (provenanceState['gov-sg'] ? ' active' : '');
+      btnGov.textContent = '\uD83C\uDDF8\uD83C\uDDEC Gov.sg';
+      btnGov.addEventListener('click', function() {
+        provenanceState['gov-sg'] = !provenanceState['gov-sg'];
+        btnGov.classList.toggle('active', provenanceState['gov-sg']);
+        onProvenanceToggle('gov-sg', provenanceState['gov-sg']);
+      });
+      var btnGlobal = document.createElement('button');
+      btnGlobal.className = 'provenance-btn' + (provenanceState['global'] ? ' active' : '');
+      btnGlobal.textContent = '\uD83C\uDF10 Global';
+      btnGlobal.addEventListener('click', function() {
+        provenanceState['global'] = !provenanceState['global'];
+        btnGlobal.classList.toggle('active', provenanceState['global']);
+        onProvenanceToggle('global', provenanceState['global']);
+      });
+      provBar.appendChild(btnGov);
+      provBar.appendChild(btnGlobal);
+      body.appendChild(provBar);
+
+      // Collapsible layer groups
+      var groups = [];
+      var groupMap = {};
+      LAYERS.forEach(function(layer) {
+        if (!groupMap[layer.group]) {
+          groupMap[layer.group] = [];
+          groups.push(layer.group);
+        }
+        groupMap[layer.group].push(layer);
+      });
+
+      groups.forEach(function(groupName) {
+        var groupLayers = groupMap[groupName];
+        var isExpanded = groupName === 'District';
+
+        // Group total count
+        var groupTotal = 0;
+        groupLayers.forEach(function(l) {
+          if (counts[l.id] !== undefined) groupTotal += counts[l.id];
+        });
+
+        // Group header
+        var header = document.createElement('div');
+        header.className = 'layer-group-header';
+        var chevron = document.createElement('span');
+        chevron.className = 'chevron' + (isExpanded ? ' open' : '');
+        chevron.textContent = '\u25B6';
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'group-label';
+        nameSpan.textContent = groupName;
+        var countSpan = document.createElement('span');
+        countSpan.className = 'group-count';
+        countSpan.setAttribute('data-group-count', groupName);
+        if (groupTotal > 0) countSpan.textContent = groupTotal.toLocaleString();
+        header.appendChild(chevron);
+        header.appendChild(nameSpan);
+        header.appendChild(countSpan);
+
+        var groupBody = document.createElement('div');
+        groupBody.className = 'layer-group-body' + (isExpanded ? ' open' : '');
+
+        header.addEventListener('click', function() {
+          var open = groupBody.classList.toggle('open');
+          chevron.classList.toggle('open', open);
+        });
+
+        // Layer rows
+        groupLayers.forEach(function(layer) {
+          var row = document.createElement('label');
+          row.className = 'layer-row';
+          var count = counts[layer.id];
+          if (count === 0) row.classList.add('zero-count');
+
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.id = 'layer-cb-' + layer.id;
+          cb.checked = !!layer.onByDefault;
+          cb.addEventListener('change', function() { onLayerToggle(layer.id, cb.checked); });
+
+          var swatch = document.createElement('span');
+          swatch.className = 'layer-color';
+          swatch.style.background = layer.color;
+          if (layer.deckType === 'line' || layer.deckType === 'streetnet') {
+            swatch.style.borderRadius = '2px';
+            swatch.style.width = '14px';
+            swatch.style.height = '4px';
+          } else if (layer.deckType === 'raster') {
+            swatch.style.borderRadius = '2px';
+            swatch.style.width = '14px';
+            swatch.style.height = '10px';
+            swatch.style.background = 'linear-gradient(to right, ' + layer.color + '44, ' + layer.color + ')';
+          } else if (layer.deckType === 'polygon') {
+            swatch.style.borderRadius = '2px';
+            swatch.style.opacity = '0.5';
+          }
+
+          var label = document.createElement('span');
+          label.className = 'layer-label';
+          var labelText = layer.label;
+          if (count !== undefined) labelText += ' (' + count.toLocaleString() + ')';
+          label.textContent = labelText;
+
+          row.appendChild(cb);
+          row.appendChild(swatch);
+          row.appendChild(label);
+
+          if (layer.source) {
+            var badge = document.createElement('span');
+            badge.className = 'source-badge';
+            badge.textContent = layer.source === 'gov-sg' ? 'SG' : '\uD83C\uDF10';
+            row.appendChild(badge);
+          }
+
+          groupBody.appendChild(row);
+
+          // RS grid mode selector
+          if (layer.id === 'rs_grid') {
+            var modeBar = document.createElement('div');
+            modeBar.className = 'rs-grid-mode';
+            modeBar.id = 'rs-grid-mode-bar';
+            Object.keys(RS_GRID_MODES).forEach(function(key) {
+              var mode = RS_GRID_MODES[key];
+              var btn = document.createElement('span');
+              btn.className = 'rs-grid-mode-btn' + (key === rsGridMode ? ' active' : '');
+              btn.textContent = mode.label;
+              btn.dataset.mode = key;
+              btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                rsGridMode = key;
+                modeBar.querySelectorAll('.rs-grid-mode-btn').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                rebuildDeckLayers();
+                updateLayerLegend();
+              });
+              modeBar.appendChild(btn);
+            });
+            groupBody.appendChild(modeBar);
+          }
+        });
+
+        body.appendChild(header);
+        body.appendChild(groupBody);
+      });
+
+      // Choropleth accordion
+      var choroHeader = document.createElement('div');
+      choroHeader.className = 'layer-group-header';
+      var choroChevron = document.createElement('span');
+      choroChevron.className = 'chevron';
+      choroChevron.textContent = '\u25B6';
+      var choroLabel = document.createElement('span');
+      choroLabel.className = 'group-label';
+      choroLabel.textContent = 'Choropleth';
+      var totalMetrics = CHOROPLETH_CATEGORIES.reduce(function(sum, cat) { return sum + cat.metrics.length; }, 0);
+      var choroCount = document.createElement('span');
+      choroCount.className = 'group-count';
+      choroCount.textContent = totalMetrics;
+      choroHeader.appendChild(choroChevron);
+      choroHeader.appendChild(choroLabel);
+      choroHeader.appendChild(choroCount);
+
+      var choroBody = document.createElement('div');
+      choroBody.className = 'layer-group-body';
+      choroHeader.addEventListener('click', function() {
+        var open = choroBody.classList.toggle('open');
+        choroChevron.classList.toggle('open', open);
+      });
+
+      // Off button
+      var offBtn = document.createElement('button');
+      offBtn.className = 'choro-off-btn';
+      offBtn.textContent = 'Off';
+      offBtn.addEventListener('click', function() {
+        choroBody.querySelectorAll('.choro-metric.active').forEach(function(el) { el.classList.remove('active'); });
+        updateChoropleth('');
+      });
+      choroBody.appendChild(offBtn);
+
+      // Choropleth legend
+      var legendDiv = document.createElement('div');
+      legendDiv.id = 'choropleth-legend';
+      legendDiv.innerHTML = '<div class="gradient-bar"></div><div class="legend-labels"><span id="choropleth-min"></span><span id="choropleth-max"></span></div>';
+      choroBody.appendChild(legendDiv);
+
+      // Sub-categories
+      CHOROPLETH_CATEGORIES.forEach(function(cat) {
+        var catHeader = document.createElement('div');
+        catHeader.className = 'choro-cat-header';
+        var catChevron = document.createElement('span');
+        catChevron.className = 'chevron';
+        catChevron.textContent = '\u25B6';
+        var catName = document.createElement('span');
+        catName.textContent = cat.name;
+        catHeader.appendChild(catChevron);
+        catHeader.appendChild(catName);
+
+        var catBody = document.createElement('div');
+        catBody.className = 'choro-cat-body';
+        catHeader.addEventListener('click', function() {
+          var open = catBody.classList.toggle('open');
+          catChevron.classList.toggle('open', open);
+        });
+
+        cat.metrics.forEach(function(m) {
+          var row = document.createElement('div');
+          row.className = 'choro-metric';
+          row.dataset.value = m.value;
+          var mLabel = document.createElement('span');
+          mLabel.className = 'choro-metric-label';
+          mLabel.textContent = m.label;
+          var badge = document.createElement('span');
+          badge.className = 'type-badge ' + m.badge;
+          badge.textContent = m.badge.toUpperCase();
+          row.appendChild(mLabel);
+          row.appendChild(badge);
+          row.addEventListener('click', function() {
+            choroBody.querySelectorAll('.choro-metric.active').forEach(function(el) { el.classList.remove('active'); });
+            row.classList.add('active');
+            updateChoropleth(m.value);
+          });
+          catBody.appendChild(row);
+        });
+
+        choroBody.appendChild(catHeader);
+        choroBody.appendChild(catBody);
+      });
+
+      body.appendChild(choroHeader);
+      body.appendChild(choroBody);
+
+      // Data catalogue link
+      var catLink = document.createElement('a');
+      catLink.className = 'catalogue-link';
+      catLink.href = 'data-catalogue.html';
+      catLink.target = '_blank';
+      catLink.textContent = '\uD83D\uDCC2 Data Catalogue & Downloads';
+      body.appendChild(catLink);
+    }
+
+    function onProvenanceToggle(source, enabled) {
+      LAYERS.forEach(function(layer) {
+        if (layer.source !== source) return;
+        var cb = document.getElementById('layer-cb-' + layer.id);
+        if (!cb) return;
+        if (!enabled) {
+          if (cb.checked) {
+            cb.checked = false;
+            onLayerToggle(layer.id, false);
+          }
+        }
+        cb.disabled = !enabled;
+        var row = cb.closest('.layer-row');
+        row.style.opacity = enabled ? '' : '0.4';
+      });
+    }
+
+    // ---------------------------------------------------------------
+    // District switching
+    // ---------------------------------------------------------------
+    function switchDistrict(districtKey) {
+      if (districtKey === currentDistrict) return;
+
+      // Reset state
+      for (var id in layerState) {
+        layerState[id] = { data: null, loaded: false, visible: false };
+      }
+      choroplethData = null;
+      activeChoropleth = '';
+      for (var key in dataCache) delete dataCache[key];
+
+      currentDistrict = districtKey;
+      var d = DISTRICTS[currentDistrict];
+
+      // Update info panel
+      document.getElementById('info-title').textContent = d.label + ' Buildings';
+      document.getElementById('info-subtitle').textContent =
+        d.buildingCount.toLocaleString() + ' buildings | 33 layers | 39 metrics';
+
+      // Fly camera
+      deckgl.setProps({
+        initialViewState: {
+          longitude: d.center[0],
+          latitude: d.center[1],
+          zoom: d.zoom,
+          pitch: 45,
+          bearing: 0,
+          transitionDuration: 2000,
+          transitionInterpolator: new deck.FlyToInterpolator(),
+        },
+      });
+
+      // Rebuild UI
+      buildLayerPanel();
+
+      // Load default layers
+      loadDefaultLayers();
+    }
+
+    // ---------------------------------------------------------------
+    // Initial load
+    // ---------------------------------------------------------------
+    function loadDefaultLayers() {
+      var defaultIds = ['boundary', 'subzones', 'buildings'];
+      var promises = defaultIds.map(function(id) {
+        var layerDef = LAYERS.find(function(l) { return l.id === id; });
+        if (!layerDef || !layerDef.file) return Promise.resolve();
+        layerState[id].loaded = true;
+        layerState[id].visible = true;
+        var url = layerFile(layerDef.file);
+        return fetchGeoJSON(url).then(function(data) {
+          layerState[id].data = data;
+        }).catch(function(err) {
+          console.warn('Default layer ' + id + ' not available for ' + currentDistrict + ':', err.message);
+          layerState[id].loaded = false;
+          layerState[id].visible = false;
+        });
+      });
+
+      Promise.all(promises).then(function() {
+        rebuildDeckLayers();
+        updateLayerLegend();
+      });
+    }
+
+    // Build panel and load defaults
+    buildLayerPanel();
+    loadDefaultLayers();
+  </script>
+</body>
+</html>
