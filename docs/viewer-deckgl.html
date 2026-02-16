@@ -81,7 +81,7 @@
   <div id="map"></div>
   <div id="info">
     <h3 id="info-title">Queenstown Buildings</h3>
-    <div id="info-subtitle">8,671 buildings | 34 layers | 39 metrics | Click for details</div>
+    <div id="info-subtitle"></div>
     <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light &#9654;</button>
     <div class="legend">
       <div style="color:#999; margin-bottom:2px;">Building height</div>
@@ -139,6 +139,11 @@
     }
 
     // ---------------------------------------------------------------
+    // Experimental mode (append ?experimental=true to URL to enable)
+    // ---------------------------------------------------------------
+    var EXPERIMENTAL = new URLSearchParams(window.location.search).get('experimental') === 'true';
+
+    // ---------------------------------------------------------------
     // District configuration
     // ---------------------------------------------------------------
     var DISTRICTS = {
@@ -187,10 +192,10 @@
       // Food & Daily Needs
       { id: 'hawker', label: 'Hawker centres', file: 'geo/gov-sg/queenstown-hawker-centres.geojson', color: '#ff6b35', group: 'Food & Daily Needs', deckType: 'point', source: 'gov-sg' },
       { id: 'supermarket', label: 'Supermarkets', file: 'geo/gov-sg/queenstown-supermarkets.geojson', color: '#4ecdc4', group: 'Food & Daily Needs', deckType: 'point', source: 'gov-sg' },
-      { id: 'grav_food', label: 'UNA food access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#ff6b35', group: 'Food & Daily Needs', deckType: 'gravity', gravityField: 'gravity_food', source: 'global' },
+      { id: 'grav_food', label: 'UNA food access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#ff6b35', group: 'Food & Daily Needs', deckType: 'gravity', gravityField: 'gravity_food', source: 'global', experimental: true },
       // Transit
       { id: 'mrt', label: 'MRT exits', file: 'geo/gov-sg/queenstown-mrt-exits.geojson', color: '#2c5f8a', group: 'Transit', deckType: 'point', source: 'gov-sg' },
-      { id: 'grav_transit', label: 'UNA transit access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#2c5f8a', group: 'Transit', deckType: 'gravity', gravityField: 'gravity_transit', source: 'global' },
+      { id: 'grav_transit', label: 'UNA transit access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#2c5f8a', group: 'Transit', deckType: 'gravity', gravityField: 'gravity_transit', source: 'global', experimental: true },
       // Green & Recreation
       { id: 'parks', label: 'Parks', file: 'geo/gov-sg/queenstown-parks.geojson', color: '#45b649', group: 'Green & Recreation', deckType: 'point', source: 'gov-sg' },
       { id: 'parkfac', label: 'Park facilities', file: 'geo/gov-sg/queenstown-park-facilities.geojson', color: '#7bc67e', group: 'Green & Recreation', deckType: 'point', source: 'gov-sg' },
@@ -198,7 +203,7 @@
       { id: 'nature', label: 'Parks & nature reserves', file: 'geo/gov-sg/queenstown-nparks-parks-nature-reserves.geojson', color: '#2e7d32', group: 'Green & Recreation', deckType: 'polygon', source: 'gov-sg' },
       { id: 'abcwaters', label: 'ABC Waters', file: 'geo/gov-sg/queenstown-abc-waters.geojson', color: '#0288d1', group: 'Green & Recreation', deckType: 'polygon', source: 'gov-sg' },
       { id: 'nptracks', label: 'NParks tracks', file: 'geo/gov-sg/queenstown-nparks-tracks.geojson', color: '#8bc34a', group: 'Green & Recreation', deckType: 'line', source: 'gov-sg' },
-      { id: 'grav_green', label: 'UNA green access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#45b649', group: 'Green & Recreation', deckType: 'gravity', gravityField: 'gravity_green', source: 'global' },
+      { id: 'grav_green', label: 'UNA green access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#45b649', group: 'Green & Recreation', deckType: 'gravity', gravityField: 'gravity_green', source: 'global', experimental: true },
       // Active Mobility
       { id: 'cycling', label: 'Cycling paths', file: 'geo/gov-sg/queenstown-cycling-paths.geojson', color: '#00ff88', group: 'Active Mobility', deckType: 'line', source: 'gov-sg' },
       // Community
@@ -207,8 +212,8 @@
       { id: 'preschool', label: 'Pre-schools', file: 'geo/gov-sg/queenstown-preschools.geojson', color: '#f39c12', group: 'Community', deckType: 'point', source: 'gov-sg' },
       { id: 'chas', label: 'CHAS clinics', file: 'geo/gov-sg/queenstown-chas-clinics.geojson', color: '#e84393', group: 'Community', deckType: 'point', source: 'gov-sg' },
       { id: 'sportfac', label: 'Sport facilities', file: 'geo/gov-sg/queenstown-sport-facilities.geojson', color: '#ff5252', group: 'Community', deckType: 'point', source: 'gov-sg' },
-      { id: 'grav_health', label: 'UNA health access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#e84393', group: 'Community', deckType: 'gravity', gravityField: 'gravity_health', source: 'global' },
-      { id: 'grav_education', label: 'UNA education access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#f39c12', group: 'Community', deckType: 'gravity', gravityField: 'gravity_education', source: 'global' },
+      { id: 'grav_health', label: 'UNA health access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#e84393', group: 'Community', deckType: 'gravity', gravityField: 'gravity_health', source: 'global', experimental: true },
+      { id: 'grav_education', label: 'UNA education access', file: 'geo/global/queenstown-una-gravity.geojson', color: '#f39c12', group: 'Community', deckType: 'gravity', gravityField: 'gravity_education', source: 'global', experimental: true },
       // Housing
       { id: 'hdb', label: 'HDB blocks', file: 'geo/global/queenstown-buildings-hdb-enriched.geojson', color: '#ff5722', group: 'Housing', deckType: 'hdb', source: 'global' },
       // Planning
@@ -226,8 +231,13 @@
       { id: 'rs_grid', label: '100m grid (clickable)', file: 'geo/global/queenstown-rs-grid.geojson', color: '#8bc34a', group: 'Remote Sensing', deckType: 'rs_grid', source: 'global' },
     ];
 
+    // Filter out experimental layers unless ?experimental=true
+    if (!EXPERIMENTAL) {
+      LAYERS = LAYERS.filter(function(l) { return !l.experimental; });
+    }
+
     // ---------------------------------------------------------------
-    // Choropleth categories (same as CesiumJS viewer + UNA gravity)
+    // Choropleth categories
     // ---------------------------------------------------------------
     var CHOROPLETH_CATEGORIES = [
       {
@@ -290,6 +300,7 @@
       },
       {
         name: 'UNA Gravity',
+        experimental: true,
         metrics: [
           { value: 'gravity_composite_mean', label: 'Composite accessibility', unit: '', fmt: 'float', badge: 'idx' },
           { value: 'gravity_food_mean', label: 'Food accessibility', unit: '', fmt: 'float', badge: 'idx' },
@@ -300,6 +311,11 @@
         ]
       },
     ];
+
+    // Filter out experimental choropleth categories unless ?experimental=true
+    if (!EXPERIMENTAL) {
+      CHOROPLETH_CATEGORIES = CHOROPLETH_CATEGORIES.filter(function(c) { return !c.experimental; });
+    }
 
     var CHOROPLETH_METRICS = [
       { value: '', label: 'Off' },
@@ -1488,8 +1504,7 @@
 
       // Update info panel
       document.getElementById('info-title').textContent = d.label + ' Buildings';
-      document.getElementById('info-subtitle').textContent =
-        d.buildingCount.toLocaleString() + ' buildings | 34 layers | 39 metrics';
+      updateInfoSubtitle(d);
 
       // Fly camera
       deckgl.setProps({
@@ -1558,7 +1573,14 @@
       });
     }
 
+    function updateInfoSubtitle(d) {
+      var metricCount = CHOROPLETH_METRICS.length - 1; // exclude 'Off'
+      document.getElementById('info-subtitle').textContent =
+        d.buildingCount.toLocaleString() + ' buildings | ' + LAYERS.length + ' layers | ' + metricCount + ' metrics | Click for details';
+    }
+
     // Build panel and load defaults
+    updateInfoSubtitle(DISTRICTS[currentDistrict]);
     buildLayerPanel();
     loadDefaultLayers();
   </script>

@@ -43,7 +43,7 @@
 <body>
   <div class="back"><a href="index.html">&larr; Back to Home</a></div>
   <h1>Map Viewer User Manual</h1>
-  <p>A guide to the <a href="viewer-deckgl.html">deck.gl map viewer</a> for the Singapore District Liveability Study. The viewer lets you explore 34 data layers and 39 choropleth metrics across five districts.</p>
+  <p>A guide to the <a href="viewer-deckgl.html">deck.gl map viewer</a> for the Singapore District Liveability Study. The viewer lets you explore 29 data layers and 33 choropleth metrics across five districts.</p>
 
   <details id="toc" open>
     <summary>Table of Contents</summary>
@@ -57,7 +57,7 @@
       <li><a href="#clicking">Clicking Features</a></li>
       <li><a href="#choropleth">Choropleth Heatmap</a></li>
       <li><a href="#rs-grid">Remote Sensing Grid Modes</a></li>
-      <li><a href="#una-gravity">UNA Gravity Layers</a></li>
+
       <li><a href="#legends">Legends</a></li>
       <li><a href="#tips">Tips &amp; Troubleshooting</a></li>
     </ul>
@@ -74,7 +74,7 @@
     <li>Four layers on by default: <strong>District boundary</strong> (magenta outline), <strong>Subzones</strong> (cyan outlines with labels), <strong>Buildings</strong> (extruded 3D with height-based colours), and <strong>Other districts</strong> (gray outlines with labels showing the 4 other study areas)</li>
     <li>The camera tilted at 45 degrees for a 3D perspective</li>
   </ul>
-  <div class="note"><strong>Queenstown is the primary study area.</strong> Some experimental features &mdash; notably the 5 UNA gravity accessibility layers and their 6 choropleth metrics &mdash; are currently available for Queenstown only. All other layers and metrics work across all five districts.</div>
+  <div class="note"><strong>Queenstown is the primary study area.</strong> All layers and metrics work across all five districts.</div>
   <div class="tip">The viewer uses WebGL for GPU-accelerated rendering. If the map appears blank, check that hardware acceleration is enabled in your browser settings.</div>
   <img src="images/viewer-overview.png" alt="Viewer overview showing Queenstown with dark basemap, buildings, and boundary" class="screenshot">
   <p class="screenshot-caption">Default view: Queenstown district with dark basemap, extruded buildings, boundary, and subzone outlines.</p>
@@ -150,7 +150,7 @@
 
   <!-- ===== LAYER GROUPS REFERENCE ===== -->
   <h2 id="layer-groups">Layer Groups Reference</h2>
-  <p>All 34 toggleable layers across 10 groups:</p>
+  <p>All 29 toggleable layers across 10 groups:</p>
 
   <h3>District (4 layers)</h3>
   <table>
@@ -161,22 +161,20 @@
     <tr><td>Other districts</td><td>Line + labels</td><td>&mdash;</td><td>Gray outlines of the 4 other study districts with name labels. Click to see district name. On by default.</td></tr>
   </table>
 
-  <h3>Food &amp; Daily Needs (3 layers)</h3>
+  <h3>Food &amp; Daily Needs (2 layers)</h3>
   <table>
     <tr><th>Layer</th><th>Type</th><th>Source</th><th>Description</th></tr>
     <tr><td>Hawker centres</td><td>Point</td><td><span class="badge badge-sg">SG</span></td><td>Government-managed food courts</td></tr>
     <tr><td>Supermarkets</td><td>Point</td><td><span class="badge badge-sg">SG</span></td><td>Supermarket locations</td></tr>
-    <tr><td>UNA food access</td><td>Gravity</td><td><span class="badge badge-global">Global</span></td><td>Per-building gravity accessibility to hawker centres + supermarkets</td></tr>
   </table>
 
-  <h3>Transit (2 layers)</h3>
+  <h3>Transit (1 layer)</h3>
   <table>
     <tr><th>Layer</th><th>Type</th><th>Source</th><th>Description</th></tr>
     <tr><td>MRT exits</td><td>Point</td><td><span class="badge badge-sg">SG</span></td><td>Mass Rapid Transit station exit locations</td></tr>
-    <tr><td>UNA transit access</td><td>Gravity</td><td><span class="badge badge-global">Global</span></td><td>Per-building gravity accessibility to MRT exits</td></tr>
   </table>
 
-  <h3>Green &amp; Recreation (7 layers)</h3>
+  <h3>Green &amp; Recreation (6 layers)</h3>
   <table>
     <tr><th>Layer</th><th>Type</th><th>Source</th><th>Description</th></tr>
     <tr><td>Parks</td><td>Point</td><td><span class="badge badge-sg">SG</span></td><td>Park locations</td></tr>
@@ -185,7 +183,6 @@
     <tr><td>Parks &amp; nature reserves</td><td>Polygon</td><td><span class="badge badge-sg">SG</span></td><td>NParks park and nature reserve boundaries</td></tr>
     <tr><td>ABC Waters</td><td>Polygon</td><td><span class="badge badge-sg">SG</span></td><td>Active Beautiful Clean Waters programme areas</td></tr>
     <tr><td>NParks tracks</td><td>Line</td><td><span class="badge badge-sg">SG</span></td><td>Walking/hiking tracks inside parks</td></tr>
-    <tr><td>UNA green access</td><td>Gravity</td><td><span class="badge badge-global">Global</span></td><td>Per-building gravity accessibility to parks</td></tr>
   </table>
 
   <h3>Active Mobility (1 layer)</h3>
@@ -194,7 +191,7 @@
     <tr><td>Cycling paths</td><td>Line</td><td><span class="badge badge-sg">SG</span></td><td>Designated cycling path network</td></tr>
   </table>
 
-  <h3>Community (7 layers)</h3>
+  <h3>Community (5 layers)</h3>
   <table>
     <tr><th>Layer</th><th>Type</th><th>Source</th><th>Description</th></tr>
     <tr><td>Community clubs</td><td>Point</td><td><span class="badge badge-sg">SG</span></td><td>Community club locations</td></tr>
@@ -202,8 +199,6 @@
     <tr><td>Pre-schools</td><td>Point</td><td><span class="badge badge-sg">SG</span></td><td>Pre-school locations</td></tr>
     <tr><td>CHAS clinics</td><td>Point</td><td><span class="badge badge-sg">SG</span></td><td>Community Health Assist Scheme clinic locations</td></tr>
     <tr><td>Sport facilities</td><td>Point</td><td><span class="badge badge-sg">SG</span></td><td>Sport facility locations</td></tr>
-    <tr><td>UNA health access</td><td>Gravity</td><td><span class="badge badge-global">Global</span></td><td>Per-building gravity accessibility to CHAS clinics</td></tr>
-    <tr><td>UNA education access</td><td>Gravity</td><td><span class="badge badge-global">Global</span></td><td>Per-building gravity accessibility to pre-schools</td></tr>
   </table>
 
   <h3>Housing (1 layer)</h3>
@@ -247,7 +242,7 @@
     <tr><td><strong>Walkability grid</strong></td><td>Cell ID, intersection density, transit access, destination access, walkability, slope-adjusted variants</td></tr>
     <tr><td><strong>Street network</strong></td><td>Road name, length (m), betweenness centrality, road type</td></tr>
     <tr><td><strong>Height control</strong></td><td>Max storeys, zone type</td></tr>
-    <tr><td><strong>UNA gravity</strong></td><td>Building name, composite score, per-category scores (food, transit, green, health, education)</td></tr>
+
     <tr><td><strong>Choropleth</strong></td><td>Subzone name, active metric value</td></tr>
     <tr><td><strong>Other features</strong></td><td>Feature name</td></tr>
   </table>
@@ -267,7 +262,7 @@
   </ol>
   <p>The choropleth legend (gradient bar with min/max values) appears between the Off button and the sub-categories.</p>
 
-  <h3>39 metrics across 6 sub-categories</h3>
+  <h3>33 metrics across 5 sub-categories</h3>
   <p>Each metric has a type badge:</p>
   <ul>
     <li><span class="badge badge-cnt">CNT</span> Count &mdash; raw totals (e.g. dwelling units, HDB blocks)</li>
@@ -283,7 +278,6 @@
     <tr><td>Buildings</td><td>3</td><td>Total buildings, avg height, max height</td></tr>
     <tr><td>Remote Sensing</td><td>6</td><td>NDVI, NDBI, LST, canopy cover, GHSL height, elevation</td></tr>
     <tr><td>Walkability</td><td>7</td><td>BEH-NWI walkability, slope-adjusted walkability, intersection density</td></tr>
-    <tr><td>UNA Gravity</td><td>6</td><td>Composite accessibility, food, transit, green, health, education</td></tr>
   </table>
   <p>Data is sourced from the per-district <code>{district}-subzone-summary.geojson</code> file, which is lazy-loaded on first use and cached.</p>
   <img src="images/choropleth-panel.png" alt="Choropleth section with Demographics expanded and Population density active" class="screenshot-small">
@@ -305,21 +299,6 @@
   <p>The legend in the info panel updates dynamically to show the current field name, gradient, and min/max values computed from the data. Click any grid cell to see all 6 properties (NDVI, NDBI, LST, canopy %, DEM, slope) regardless of the active colour mode.</p>
   <img src="images/rs-grid-modes.png" alt="RS grid in NDVI mode with colour mode toggle buttons" class="screenshot">
   <p class="screenshot-caption">The RS grid in NDVI mode. Toggle buttons (NDVI / DEM / Slope / LST / NDBI) appear below the grid checkbox.</p>
-
-  <!-- ===== UNA GRAVITY ===== -->
-  <h2 id="una-gravity">UNA Gravity Layers</h2>
-  <p>Five UNA (Urban Network Analysis) gravity accessibility layers show how accessible each residential building is to nearby destinations, weighted by walking distance decay. They appear in their respective groups:</p>
-  <table>
-    <tr><th>Layer</th><th>Group</th><th>Destinations</th></tr>
-    <tr><td>UNA food access</td><td>Food &amp; Daily Needs</td><td>Hawker centres + supermarkets</td></tr>
-    <tr><td>UNA transit access</td><td>Transit</td><td>MRT exits</td></tr>
-    <tr><td>UNA green access</td><td>Green &amp; Recreation</td><td>Parks</td></tr>
-    <tr><td>UNA health access</td><td>Community</td><td>CHAS clinics</td></tr>
-    <tr><td>UNA education access</td><td>Community</td><td>Pre-schools</td></tr>
-  </table>
-  <p>Each layer displays building centroids as small circles. Higher scores (brighter opacity) mean better accessibility. Click a building to see all five category scores plus the composite score.</p>
-  <div class="note"><strong>Queenstown only:</strong> UNA gravity data is currently available for Queenstown only. Other districts show 0 features for these layers.</div>
-  <p>The Choropleth section also includes 6 UNA Gravity metrics (composite + 5 categories) that show subzone-level averages.</p>
 
   <!-- ===== LEGENDS ===== -->
   <h2 id="legends">Legends</h2>
@@ -351,7 +330,6 @@
     <tr><td>Layer not loading</td><td>Check the browser console (<kbd>F12</kbd>) for warnings. Some layers have 0 features for certain districts and will fail gracefully.</td></tr>
     <tr><td>Layers overlapping</td><td>Layers render in a fixed z-order: rasters at the bottom, then choropleth, polygons, grids, lines, boundaries, buildings, points, HDB, and gravity on top. Toggle off layers you don&rsquo;t need.</td></tr>
     <tr><td>Choropleth not visible</td><td>The choropleth renders below buildings. Disable the Buildings layer, or tilt the map to see subzone shading beneath the 3D buildings.</td></tr>
-    <tr><td>UNA layers show 0</td><td>UNA gravity data is only available for Queenstown. Switch to Queenstown to see these layers.</td></tr>
     <tr><td>Slow initial load</td><td>Default layers (boundary, subzones, buildings) are loaded immediately. All other layers are lazy-loaded only when toggled on to minimise initial load time.</td></tr>
     <tr><td>District switch resets layers</td><td>This is by design. Switching districts clears all cached data and resets checkboxes to prevent stale cross-district data.</td></tr>
   </table>
