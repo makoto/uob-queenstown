@@ -1,0 +1,172 @@
+[
+  {
+    "subzone_name": "DEPOT ROAD",
+    "intersection_density": 422.2,
+    "transit_access_score": 0.5793,
+    "destination_accessibility": 1.8472,
+    "walkability_index": -1.8528,
+    "transit_access_slope": 0.4352,
+    "dest_access_slope": 1.0628,
+    "walkability_slope": -2.3077
+  },
+  {
+    "subzone_name": "BUKIT MERAH",
+    "intersection_density": 494.6,
+    "transit_access_score": 0.9806,
+    "destination_accessibility": 2.2852,
+    "walkability_index": -0.3465,
+    "transit_access_slope": 0.7838,
+    "dest_access_slope": 1.4804,
+    "walkability_slope": -0.126
+  },
+  {
+    "subzone_name": "TIONG BAHRU",
+    "intersection_density": 749.2,
+    "transit_access_score": 2.238,
+    "destination_accessibility": 2.9523,
+    "walkability_index": 3.4269,
+    "transit_access_slope": 1.049,
+    "dest_access_slope": 1.9299,
+    "walkability_slope": 2.855
+  },
+  {
+    "subzone_name": "TIONG BAHRU STATION",
+    "intersection_density": 815.5,
+    "transit_access_score": 3.7326,
+    "destination_accessibility": 3.3527,
+    "walkability_index": 6.1392,
+    "transit_access_slope": 1.9077,
+    "dest_access_slope": 1.8977,
+    "walkability_slope": 4.9903
+  },
+  {
+    "subzone_name": "HENDERSON HILL",
+    "intersection_density": 640.8,
+    "transit_access_score": 1.2719,
+    "destination_accessibility": 2.1582,
+    "walkability_index": 0.5268,
+    "transit_access_slope": 0.97,
+    "dest_access_slope": 1.4823,
+    "walkability_slope": 1.012
+  },
+  {
+    "subzone_name": "REDHILL",
+    "intersection_density": 868.7,
+    "transit_access_score": 2.641,
+    "destination_accessibility": 2.6577,
+    "walkability_index": 4.0428,
+    "transit_access_slope": 2.017,
+    "dest_access_slope": 1.8391,
+    "walkability_slope": 5.3457
+  },
+  {
+    "subzone_name": "ALEXANDRA HILL",
+    "intersection_density": 705.7,
+    "transit_access_score": 1.0155,
+    "destination_accessibility": 1.8837,
+    "walkability_index": 0.1228,
+    "transit_access_slope": 0.7432,
+    "dest_access_slope": 1.3386,
+    "walkability_slope": 0.4708
+  },
+  {
+    "subzone_name": "BUKIT HO SWEE",
+    "intersection_density": 536.5,
+    "transit_access_score": 2.6592,
+    "destination_accessibility": 2.3814,
+    "walkability_index": 1.9955,
+    "transit_access_slope": 1.426,
+    "dest_access_slope": 1.6243,
+    "walkability_slope": 1.858
+  },
+  {
+    "subzone_name": "CITY TERMINALS",
+    "intersection_density": 44.6,
+    "transit_access_score": 1.0142,
+    "destination_accessibility": 0.87,
+    "walkability_index": -4.7085,
+    "transit_access_slope": 0.6599,
+    "dest_access_slope": 0.6253,
+    "walkability_slope": -4.7897
+  },
+  {
+    "subzone_name": "MARITIME SQUARE",
+    "intersection_density": 244.0,
+    "transit_access_score": 1.6438,
+    "destination_accessibility": 1.2373,
+    "walkability_index": -2.412,
+    "transit_access_slope": 1.1389,
+    "dest_access_slope": 0.8627,
+    "walkability_slope": -2.1484
+  },
+  {
+    "subzone_name": "TELOK BLANGAH RISE",
+    "intersection_density": 515.8,
+    "transit_access_score": 0.7579,
+    "destination_accessibility": 1.7211,
+    "walkability_index": -1.3718,
+    "transit_access_slope": 0.5235,
+    "dest_access_slope": 1.1168,
+    "walkability_slope": -1.5136
+  },
+  {
+    "subzone_name": "EVERTON PARK",
+    "intersection_density": 559.4,
+    "transit_access_score": 1.4205,
+    "destination_accessibility": 1.0395,
+    "walkability_index": -1.419,
+    "transit_access_slope": 0.8449,
+    "dest_access_slope": 0.6726,
+    "walkability_slope": -1.7149
+  },
+  {
+    "subzone_name": "TELOK BLANGAH WAY",
+    "intersection_density": 581.3,
+    "transit_access_score": 0.6838,
+    "destination_accessibility": 2.033,
+    "walkability_index": -0.6561,
+    "transit_access_slope": 0.4684,
+    "dest_access_slope": 1.2762,
+    "walkability_slope": -0.9072
+  },
+  {
+    "subzone_name": "KAMPONG TIONG BAHRU",
+    "intersection_density": 445.9,
+    "transit_access_score": 0.9975,
+    "destination_accessibility": 1.8219,
+    "walkability_index": -1.2794,
+    "transit_access_slope": 0.6809,
+    "dest_access_slope": 1.1116,
+    "walkability_slope": -1.5266
+  },
+  {
+    "subzone_name": "TELOK BLANGAH DRIVE",
+    "intersection_density": 458.8,
+    "transit_access_score": 1.2177,
+    "destination_accessibility": 1.8002,
+    "walkability_index": -0.9882,
+    "transit_access_slope": 0.8498,
+    "dest_access_slope": 1.2318,
+    "walkability_slope": -0.7871
+  },
+  {
+    "subzone_name": "SINGAPORE GENERAL HOSPITAL",
+    "intersection_density": 579.6,
+    "transit_access_score": 1.7183,
+    "destination_accessibility": 1.3587,
+    "walkability_index": -0.4761,
+    "transit_access_slope": 1.2111,
+    "dest_access_slope": 0.959,
+    "walkability_slope": -0.0848
+  },
+  {
+    "subzone_name": "ALEXANDRA NORTH",
+    "intersection_density": 399.1,
+    "transit_access_score": 1.481,
+    "destination_accessibility": 1.949,
+    "walkability_index": -0.7435,
+    "transit_access_slope": 1.0081,
+    "dest_access_slope": 1.2747,
+    "walkability_slope": -0.6259
+  }
+]
