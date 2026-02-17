@@ -14,6 +14,8 @@
     #picked { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: #0f0; padding: 10px 15px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 1; display: none; max-width: 400px; }
     #basemap-toggle { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 3px 10px; font-family: sans-serif; font-size: 12px; cursor: pointer; margin-top: 6px; }
     #basemap-toggle:hover { background: rgba(255,255,255,0.3); }
+    #share-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 3px 10px; font-family: sans-serif; font-size: 12px; cursor: pointer; margin-top: 4px; display: block; }
+    #share-btn:hover { background: rgba(255,255,255,0.3); }
     .legend { margin-top: 8px; font-size: 11px; line-height: 1.6; }
     .legend-item { display: flex; align-items: center; gap: 6px; }
     .legend-swatch { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
@@ -98,6 +100,7 @@
     <h3 id="info-title">Queenstown Buildings</h3>
     <div id="info-subtitle"></div>
     <button id="basemap-toggle" onclick="toggleBasemap()">&#9788; Light &#9654;</button>
+    <button id="share-btn" onclick="copyShareLink()">&#128279; Copy link</button>
     <div class="legend">
       <div style="color:#999; margin-bottom:2px;">Building height</div>
       <div class="legend-item"><span class="legend-swatch" style="background:red"></span> &gt; 100 m</div>
@@ -432,6 +435,74 @@
       deckgl.setProps({ mapStyle: BASEMAPS[basemapIndex].style });
       var nextIndex = (basemapIndex + 1) % BASEMAPS.length;
       document.getElementById('basemap-toggle').innerHTML = BASEMAPS[nextIndex].label + ' &#9654;';
+      updateUrl();
+    }
+
+    // ---------------------------------------------------------------
+    // URL state persistence
+    // ---------------------------------------------------------------
+    var urlChoroplethKey = '';
+
+    function restoreStateFromUrl() {
+      var params = new URLSearchParams(window.location.search);
+      var d = params.get('d');
+      if (d && DISTRICTS[d]) currentDistrict = d;
+      var layersParam = params.get('layers');
+      if (layersParam) {
+        var visibleIds = layersParam.split(',');
+        LAYERS.forEach(function(l) {
+          layerState[l.id].visible = visibleIds.indexOf(l.id) >= 0;
+        });
+      }
+      var szParam = params.get('sz');
+      if (szParam !== null) {
+        selectedSubzones = szParam ? szParam.split(',') : [];
+      }
+      var choroParam = params.get('choro');
+      if (choroParam) {
+        urlChoroplethKey = choroParam;
+        activeChoropleth = choroParam;
+      }
+      var rsParam = params.get('rs');
+      if (rsParam && RS_GRID_MODES[rsParam]) rsGridMode = rsParam;
+      var baseParam = params.get('base');
+      if (baseParam !== null) {
+        var idx = parseInt(baseParam, 10);
+        if (idx >= 0 && idx < BASEMAPS.length) basemapIndex = idx;
+      }
+    }
+    restoreStateFromUrl();
+
+    function serializeState() {
+      var parts = [];
+      if (EXPERIMENTAL) parts.push('experimental=true');
+      if (currentDistrict !== 'queenstown') parts.push('d=' + currentDistrict);
+      var visibleIds = LAYERS.filter(function(l) { return layerState[l.id] && layerState[l.id].visible; })
+        .map(function(l) { return l.id; });
+      var defaultIds = ['boundary', 'subzones', 'buildings', 'other_districts'];
+      if (JSON.stringify(visibleIds.slice().sort()) !== JSON.stringify(defaultIds.slice().sort())) {
+        parts.push('layers=' + visibleIds.join(','));
+      }
+      if (selectedSubzones) parts.push('sz=' + selectedSubzones.map(encodeURIComponent).join(','));
+      if (activeChoropleth) parts.push('choro=' + activeChoropleth);
+      if (rsGridMode !== 'ndvi') parts.push('rs=' + rsGridMode);
+      if (basemapIndex !== 0) parts.push('base=' + basemapIndex);
+      return parts.join('&');
+    }
+
+    function updateUrl() {
+      var qs = serializeState();
+      var url = window.location.pathname + (qs ? '?' + qs : '');
+      history.replaceState(null, '', url);
+    }
+
+    function copyShareLink() {
+      var url = window.location.href;
+      navigator.clipboard.writeText(url).then(function() {
+        var btn = document.getElementById('share-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.innerHTML = '&#128279; Copy link'; }, 1500);
+      });
     }
 
     // ---------------------------------------------------------------
@@ -440,7 +511,7 @@
     var dist = DISTRICTS[currentDistrict];
     var deckgl = new deck.DeckGL({
       container: 'map',
-      mapStyle: BASEMAPS[0].style,
+      mapStyle: BASEMAPS[basemapIndex].style,
       initialViewState: {
         longitude: dist.center[0],
         latitude: dist.center[1],
@@ -1088,6 +1159,7 @@
     // ---------------------------------------------------------------
     function onLayerToggle(id, visible) {
       layerState[id].visible = visible;
+      updateUrl();
       var layerDef = LAYERS.find(function(l) { return l.id === id; });
 
       // Rasters don't need data loading
@@ -1121,6 +1193,7 @@
           layerState[id].visible = false;
           var cb = document.getElementById('layer-cb-' + id);
           if (cb) cb.checked = false;
+          updateUrl();
         });
         return;
       }
@@ -1140,6 +1213,7 @@
           layerState[id].visible = false;
           var cb = document.getElementById('layer-cb-' + id);
           if (cb) cb.checked = false;
+          updateUrl();
         });
         return;
       }
@@ -1158,10 +1232,12 @@
         activeChoropleth = '';
         legend.style.display = 'none';
         rebuildDeckLayers();
+        updateUrl();
         return;
       }
 
       activeChoropleth = metricKey;
+      updateUrl();
 
       // Lazy-load subzone summary GeoJSON
       if (!choroplethData) {
@@ -1344,9 +1420,13 @@
         groupMap[layer.group].push(layer);
       });
 
+      var hasUrlLayers = new URLSearchParams(window.location.search).has('layers');
+
       groups.forEach(function(groupName) {
         var groupLayers = groupMap[groupName];
-        var isExpanded = groupName === 'District';
+        var isExpanded = groupName === 'District' || (hasUrlLayers && groupLayers.some(function(l) {
+          return layerState[l.id] && layerState[l.id].visible && !l.onByDefault;
+        }));
 
         // Group total count
         var groupTotal = 0;
@@ -1389,7 +1469,7 @@
           var cb = document.createElement('input');
           cb.type = 'checkbox';
           cb.id = 'layer-cb-' + layer.id;
-          cb.checked = !!layer.onByDefault;
+          cb.checked = !!(layerState[layer.id] && layerState[layer.id].visible);
           cb.addEventListener('change', function() { onLayerToggle(layer.id, cb.checked); });
 
           var swatch = document.createElement('span');
@@ -1449,6 +1529,7 @@
                 btn.classList.add('active');
                 rebuildDeckLayers();
                 updateLayerLegend();
+                updateUrl();
               });
               modeBar.appendChild(btn);
             });
@@ -1622,6 +1703,7 @@
         rebuildDeckLayers();
         updateLayerLegend();
         updateFilteredCounts();
+        updateUrl();
       });
       var btnNone = document.createElement('button');
       btnNone.className = 'subzone-filter-btn';
@@ -1633,6 +1715,7 @@
         rebuildDeckLayers();
         updateLayerLegend();
         updateFilteredCounts();
+        updateUrl();
       });
       btnRow.appendChild(btnAll);
       btnRow.appendChild(btnNone);
@@ -1644,7 +1727,7 @@
         row.className = 'subzone-filter-row';
         var cb = document.createElement('input');
         cb.type = 'checkbox';
-        cb.checked = true;
+        cb.checked = !selectedSubzones || selectedSubzones.indexOf(name) >= 0;
         cb.dataset.subzone = name;
         cb.addEventListener('change', function() {
           onSubzoneFilterChange(names);
@@ -1656,7 +1739,17 @@
         filterBody.appendChild(row);
       });
 
-      updateSubzoneFilterBadge(names.length, names.length);
+      var checkedCount = selectedSubzones
+        ? names.filter(function(n) { return selectedSubzones.indexOf(n) >= 0; }).length
+        : names.length;
+      updateSubzoneFilterBadge(checkedCount, names.length);
+
+      // If subzone filter was restored from URL, re-apply now that polygons are set
+      if (selectedSubzones) {
+        rebuildDeckLayers();
+        updateLayerLegend();
+        updateFilteredCounts();
+      }
     }
 
     function onSubzoneFilterChange(allNames) {
@@ -1675,6 +1768,7 @@
       rebuildDeckLayers();
       updateLayerLegend();
       updateFilteredCounts();
+      updateUrl();
     }
 
     function updateSubzoneFilterBadge(selected, total) {
@@ -1796,6 +1890,10 @@
       for (var id in layerState) {
         layerState[id] = { data: null, loaded: false, visible: false };
       }
+      // Set default visibility
+      LAYERS.forEach(function(l) {
+        if (l.onByDefault) layerState[l.id].visible = true;
+      });
       choroplethData = null;
       activeChoropleth = '';
       selectedSubzones = null;
@@ -1827,52 +1925,71 @@
 
       // Load default layers
       loadDefaultLayers();
+      updateUrl();
     }
 
     // ---------------------------------------------------------------
     // Initial load
     // ---------------------------------------------------------------
     function loadDefaultLayers() {
-      var defaultIds = ['boundary', 'subzones', 'buildings'];
-      var promises = defaultIds.map(function(id) {
+      // Load all layers marked visible (set by defaults or URL restore)
+      var idsToLoad = LAYERS.filter(function(l) {
+        return layerState[l.id] && layerState[l.id].visible && l.file && l.deckType !== 'raster';
+      }).map(function(l) { return l.id; });
+      // Remove other_districts (handled separately)
+      idsToLoad = idsToLoad.filter(function(id) { return id !== 'other_districts'; });
+
+      var promises = idsToLoad.map(function(id) {
         var layerDef = LAYERS.find(function(l) { return l.id === id; });
         if (!layerDef || !layerDef.file) return Promise.resolve();
         layerState[id].loaded = true;
-        layerState[id].visible = true;
         var url = layerFile(layerDef.file);
         return fetchGeoJSON(url).then(function(data) {
           layerState[id].data = data;
         }).catch(function(err) {
-          console.warn('Default layer ' + id + ' not available for ' + currentDistrict + ':', err.message);
+          console.warn('Layer ' + id + ' not available for ' + currentDistrict + ':', err.message);
           layerState[id].loaded = false;
           layerState[id].visible = false;
         });
       });
 
-      // Also load other_districts (multi-file, special case)
-      layerState['other_districts'].visible = true;
-      layerState['other_districts'].loaded = true;
-      var otherKeys = Object.keys(DISTRICTS).filter(function(k) { return k !== currentDistrict; });
-      var otherPromise = Promise.all(otherKeys.map(function(k) {
-        return fetchGeoJSON('geo/' + k + '-boundary.geojson').then(function(data) {
-          return data.features.map(function(f) {
-            f.properties._district = DISTRICTS[k].label;
-            return f;
+      // Also load other_districts if visible (multi-file, special case)
+      if (layerState['other_districts'] && layerState['other_districts'].visible) {
+        layerState['other_districts'].loaded = true;
+        var otherKeys = Object.keys(DISTRICTS).filter(function(k) { return k !== currentDistrict; });
+        var otherPromise = Promise.all(otherKeys.map(function(k) {
+          return fetchGeoJSON('geo/' + k + '-boundary.geojson').then(function(data) {
+            return data.features.map(function(f) {
+              f.properties._district = DISTRICTS[k].label;
+              return f;
+            });
           });
+        })).then(function(results) {
+          var allFeatures = results.reduce(function(a, b) { return a.concat(b); }, []);
+          layerState['other_districts'].data = { type: 'FeatureCollection', features: allFeatures };
+        }).catch(function(err) {
+          console.warn('Other districts not available:', err.message);
+          layerState['other_districts'].loaded = false;
+          layerState['other_districts'].visible = false;
         });
-      })).then(function(results) {
-        var allFeatures = results.reduce(function(a, b) { return a.concat(b); }, []);
-        layerState['other_districts'].data = { type: 'FeatureCollection', features: allFeatures };
-      }).catch(function(err) {
-        console.warn('Other districts not available:', err.message);
-        layerState['other_districts'].loaded = false;
-        layerState['other_districts'].visible = false;
-      });
-      promises.push(otherPromise);
+        promises.push(otherPromise);
+      }
 
       Promise.all(promises).then(function() {
+        // Ensure subzonePolygons is set before first render (for URL-restored subzone filter)
+        if (!subzonePolygons && layerState['subzones'] && layerState['subzones'].data) {
+          subzonePolygons = layerState['subzones'].data.features;
+        }
         rebuildDeckLayers();
         updateLayerLegend();
+        if (selectedSubzones) updateFilteredCounts();
+        // Apply deferred choropleth from URL
+        if (urlChoroplethKey) {
+          updateChoropleth(urlChoroplethKey);
+          var row = document.querySelector('.choro-metric[data-value="' + urlChoroplethKey + '"]');
+          if (row) row.classList.add('active');
+          urlChoroplethKey = '';
+        }
       });
     }
 
@@ -1884,6 +2001,10 @@
 
     // Build panel and load defaults
     updateInfoSubtitle(DISTRICTS[currentDistrict]);
+    // Update info title and basemap button for restored district/basemap
+    document.getElementById('info-title').textContent = DISTRICTS[currentDistrict].label + ' Buildings';
+    var nextBase = (basemapIndex + 1) % BASEMAPS.length;
+    document.getElementById('basemap-toggle').innerHTML = BASEMAPS[nextBase].label + ' &#9654;';
     buildLayerPanel();
     loadDefaultLayers();
   </script>

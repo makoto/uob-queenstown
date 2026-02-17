@@ -59,6 +59,7 @@
       <li><a href="#choropleth">Choropleth Heatmap</a></li>
       <li><a href="#rs-grid">Remote Sensing Grid Modes</a></li>
 
+      <li><a href="#sharing">Sharing &amp; URL State</a></li>
       <li><a href="#legends">Legends</a></li>
       <li><a href="#tips">Tips &amp; Troubleshooting</a></li>
     </ul>
@@ -320,6 +321,30 @@
   <p>The legend in the info panel updates dynamically to show the current field name, gradient, and min/max values computed from the data. Click any grid cell to see all 6 properties (NDVI, NDBI, LST, canopy %, DEM, slope) regardless of the active colour mode.</p>
   <img src="images/rs-grid-modes.png" alt="RS grid in NDVI mode with colour mode toggle buttons" class="screenshot">
   <p class="screenshot-caption">The RS grid in NDVI mode. Toggle buttons (NDVI / DEM / Slope / LST / NDBI) appear below the grid checkbox.</p>
+
+  <!-- ===== SHARING ===== -->
+  <h2 id="sharing">Sharing &amp; URL State</h2>
+  <p>The viewer automatically saves your current view state into the browser&rsquo;s URL bar. You can share exact map configurations with others by copying the URL.</p>
+  <h3>Copy link button</h3>
+  <p>Click the <strong>Copy link</strong> button in the info panel (top-left, below the basemap toggle) to copy the current URL to your clipboard. The button briefly shows &ldquo;Copied!&rdquo; as confirmation. Paste the link in a message, email, or document to share your exact view.</p>
+  <h3>What gets saved in the URL</h3>
+  <p>The URL only includes parameters that differ from the defaults, keeping shared links short. The following state is captured:</p>
+  <table>
+    <tr><th style="width:120px">Parameter</th><th>What it controls</th><th>Example</th></tr>
+    <tr><td><code>d</code></td><td>Selected district (omitted for Queenstown, the default)</td><td><code>d=bishan</code></td></tr>
+    <tr><td><code>layers</code></td><td>Comma-separated list of visible layer IDs (omitted when default set)</td><td><code>layers=boundary,subzones,hawker</code></td></tr>
+    <tr><td><code>sz</code></td><td>Comma-separated selected subzone names (omitted when all are selected)</td><td><code>sz=QUEENSWAY,TANGLIN%20HALT</code></td></tr>
+    <tr><td><code>choro</code></td><td>Active choropleth metric key (omitted when choropleth is off)</td><td><code>choro=population_density</code></td></tr>
+    <tr><td><code>rs</code></td><td>RS grid colour mode (omitted when default NDVI)</td><td><code>rs=lst</code></td></tr>
+    <tr><td><code>base</code></td><td>Basemap index: 0 = Dark, 1 = Light, 2 = Voyager (omitted when Dark)</td><td><code>base=2</code></td></tr>
+    <tr><td><code>experimental</code></td><td>Enables UNA gravity accessibility layers (hidden by default)</td><td><code>experimental=true</code></td></tr>
+  </table>
+  <h3>How it works</h3>
+  <ul>
+    <li>Every time you toggle a layer, change the district, switch a choropleth metric, adjust the subzone filter, change the basemap, or switch the RS grid mode, the URL updates automatically (without reloading the page).</li>
+    <li>When someone opens a shared link, the viewer restores the full state: the correct district, visible layers, subzone selection, choropleth metric, RS grid mode, and basemap.</li>
+  </ul>
+  <div class="tip"><strong>Tip:</strong> Use shared links to create bookmarks for specific analysis views &mdash; for example, a link showing Outram with only green space layers and the NDVI choropleth active.</div>
 
   <!-- ===== LEGENDS ===== -->
   <h2 id="legends">Legends</h2>
